@@ -10,16 +10,19 @@
 
 <!-- BODY -->
 <body id="body">
+	<script src="gcgraph.js"></script>
+	<script src="graphcut.js"></script>
 	<script src="javascript.js"></script>
+
 	<div id="canvasdiv"><canvas id="canvas"></canvas><img id="canvasimg" src="11.jpg" /></div>
 	<div id="buttons">
 		<button onclick="javascript:clearArea();return false;">Clear Area</button>
 		Line width : <select id="selWidth">
-			<option value="1">1</option>
+			<option value="1" selected="selected">1</option>
 			<option value="3">3</option>
 			<option value="5">5</option>
 			<option value="7">7</option>
-			<option value="9" selected="selected">9</option>
+			<option value="9">9</option>
 			<option value="11">11</option>
 		</select>
 		<button class="canvas-button" id="color1">black</button>

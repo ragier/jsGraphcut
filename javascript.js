@@ -8,16 +8,55 @@ var canvasDiv;
 var canvasImg;
 var color;
 
+var graphcut;
+
+var factor = 1;
+
+function getImageData(img) {
+    var tmpCanvas = document.createElement("canvas");
+
+    tmpCanvas.width = img.naturalWidth;
+    tmpCanvas.height = img.naturalHeight;
+
+    var tmpCtx = tmpCanvas.getContext("2d");
+    tmpCtx.drawImage(img, 0, 0);
+
+    var imgData = tmpCtx.getImageData(0, 0, img.naturalWidth, img.naturalHeight);
+    console.log(imgData);
+    return imgData ;
+
+    
+}
+
 function InitThis() {
     canvasImg = document.getElementById("canvasimg");
     canvasDiv = document.getElementById("canvasdiv");
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext("2d");
-    canvas.width = canvasImg.clientWidth;
-    canvas.height = canvasImg.clientHeight;
-    
-    canvasDiv.style.width = 500 + 10 + "px";
-    canvasDiv.style.height = canvas.height + 10 + "px";
+
+
+    canvas.width = canvasImg.naturalWidth;
+    canvas.height = canvasImg.naturalHeight;
+
+    canvas.style.width = canvasImg.naturalWidth*factor + "px";
+    canvas.style.height = canvasImg.naturalHeight*factor + "px";
+
+    //canvasImg.onload = function () {
+        var imgData = getImageData(canvasImg);
+        graphcut = new Graphcut(ctx, imgData);
+        console.log(canvasImg, imgData.data[0]);
+
+        graphcut.calcWeights();
+    //}
+
+
+    ///graphcut.drawWeights();
+
+    canvasImg.style.width  = canvasImg.naturalWidth*factor + "px";
+    canvasImg.style.height = canvasImg.naturalHeight*factor + "px";
+
+    canvasDiv.style.width  = canvasImg.naturalWidth*factor + 10 + "px";
+    canvasDiv.style.height = canvasImg.naturalHeight*factor + 10 + "px";
     
 
     $('#canvas').mousedown(function (e) {
@@ -57,17 +96,20 @@ function InitThis() {
     });
 
     $("#submit").click(function(){
+        graphcut.segment();
+        /*
         canvas.toBlob(function(blob){
-            /*
+            
             var newImg = document.createElement('img');
             var url = URL.createObjectURL(blob);
             newImg.src = url;
             
             document.body.appendChild(newImg);
-            */
+            
            
             console.log(blob);
         });
+        */
     })
 
 }
@@ -78,8 +120,8 @@ function Draw(x, y, isDown) {
         ctx.strokeStyle = color;
         ctx.lineWidth = $('#selWidth').val();
         ctx.lineJoin = "round";
-        ctx.moveTo(lastX, lastY);
-        ctx.lineTo(x, y);
+        ctx.moveTo(lastX/factor, lastY/factor);
+        ctx.lineTo(x/factor, y/factor);
         ctx.closePath();
         ctx.stroke();
     }
@@ -91,7 +133,7 @@ function clearArea() {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 }
-
+/*
 $.ajax({
     url: "http://137.74.115.158/api/presets",
     type: "GET",
@@ -108,3 +150,5 @@ $.ajax({
         console.log(e);
     }
   });
+
+  */

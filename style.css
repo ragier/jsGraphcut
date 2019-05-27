@@ -24,7 +24,6 @@ div{
 img{
 	z-index: -1;
 	position:absolute;
-	width:500px;
 	left: 0;
 	top: 0;
 }
