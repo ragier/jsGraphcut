@@ -1,0 +1,31 @@
+﻿<!DOCTYPE HTML>
+<!-- HEADER -->
+<head>
+	<title>Draw your thing</title>
+	<link href="style.css" rel="stylesheet" type="text/css" media="all">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+	<!-- Liens pour ajouter BootStrap -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+</head>
+
+<!-- BODY -->
+<body id="body">
+	<script src="javascript.js"></script>
+	<div id="canvasdiv"><canvas id="canvas"></canvas><img id="canvasimg" src="11.jpg" /></div>
+	<div id="buttons">
+		<button onclick="javascript:clearArea();return false;">Clear Area</button>
+		Line width : <select id="selWidth">
+			<option value="1">1</option>
+			<option value="3">3</option>
+			<option value="5">5</option>
+			<option value="7">7</option>
+			<option value="9" selected="selected">9</option>
+			<option value="11">11</option>
+		</select>
+		<button class="canvas-button" id="color1">black</button>
+		<button class="canvas-button" id="color2">red</button>
+		<button class="canvas-button" id="color3">green</button>
+		<button class="canvas-button" id="color4">blue</button>
+		<button id="submit">Envoyer</button>
+	</div>
+</body>
