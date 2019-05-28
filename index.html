@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE HTML>
 <!-- HEADER -->
 <head>
-	<title>Draw your thing</title>
+	<title>jsGraphCut/title>
 	<link href="style.css" rel="stylesheet" type="text/css" media="all">
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
 	<!-- Liens pour ajouter BootStrap -->
@@ -14,21 +14,46 @@
 	<script src="graphcut.js"></script>
 	<script src="javascript.js"></script>
 
-	<div id="canvasdiv"><canvas id="canvas"></canvas><img id="canvasimg" src="11.jpg" /></div>
-	<div id="buttons">
-		<button onclick="javascript:clearArea();return false;">Clear Area</button>
-		Line width : <select id="selWidth">
-			<option value="1" selected="selected">1</option>
-			<option value="3">3</option>
-			<option value="5">5</option>
-			<option value="7">7</option>
-			<option value="9">9</option>
-			<option value="11">11</option>
-		</select>
-		<button class="canvas-button" id="color1">black</button>
-		<button class="canvas-button" id="color2">red</button>
-		<button class="canvas-button" id="color3">green</button>
-		<button class="canvas-button" id="color4">blue</button>
-		<button id="submit">Envoyer</button>
-	</div>
+		<div id="top-buttons">
+			<div id="top-left">
+				<input type="button" value="Bouton1">
+				<input type="button" value="Bouton2">
+			</div>
+			<div id="top-right">
+				<button class="color-button" id="color1">black</button>
+				<button class="color-button" id="color2">red</button>
+				<button class="color-button" id="color3">green</button>
+				<button class="color-button" id="color4">blue</button>
+			</div>
+		</div>
+
+		<div id="size-select">
+			<div id="size3"></div>
+			<div id="size2"></div>
+			<div id="size1"></div>
+		</div>
+
+		<div id="canvasdiv"><canvas id="canvas"></canvas><img id="canvasimg" src="11.jpg" /></div>
+
+		<div id="bottom-buttons">
+			<div id="bottom-left">
+				<button id="submit">Envoyer</button>
+			</div>
+			<div id="bottom-right">
+				<button onclick="javascript:clearArea();return false;">Clear Area</button>
+			</div>
+		</div>
+
+
+
+		<!-- >div id="buttons">
+			Line width : <select id="selWidth">
+				<option value="1" selected="selected">1</option>
+				<option value="3">3</option>
+				<option value="5">5</option>
+				<option value="7">7</option>
+				<option value="9">9</option>
+				<option value="11">11</option>
+			</select>
+		</div -->
 </body>

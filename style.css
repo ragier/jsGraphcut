@@ -1,29 +1,74 @@
-
 #canvasdiv {
-	margin : auto;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 2rem;
+	margin-bottom: 2rem;
 	padding : auto;
 	display: block;
-	margin-top:3rem;
-	margin-bottom:3rem;
 	border-color:black;
 	border-style:solid;
 	border-width:5px;
 	position:relative;
 }
-#body {
-	background-color: rgb(80,80,80);
-	text-align:center;
-}
-#buttons {
-	color:white;
-}
-div{
-	text-align: center;
-	margin:auto;
-}
-img{
+
+
+#canvasimg{
 	z-index: -1;
 	position:absolute;
 	left: 0;
 	top: 0;
+}
+
+#body {
+	background-color: rgb(80,80,80);
+	text-align:center;
+	margin:auto;
+}
+
+#buttons {
+	color:white;
+}
+
+#top-buttons {
+	display:flex;
+	justify-content: space-between;
+	margin-top:2rem;
+}
+
+#bottom-buttons {
+	display:flex;
+	justify-content: space-between;
+	margin-bottom:3rem;
+}
+
+#size-select{
+	display:flex;
+	flex-direction: row-reverse;
+	align-items:center;
+	margin-top:1.5rem;
+	margin-bottom:.75rem;
+
+}
+
+#size-select div{
+	margin-left:1rem;
+	background-color: black;
+}
+
+#size1{
+	width:2rem;
+	height:2rem;
+	border-radius:2rem;
+}
+
+#size2{
+	width:2.5rem;
+	height:2.5rem;
+	border-radius:2.5rem;
+}
+
+#size3{
+	width:3rem;
+	height:3rem;
+	border-radius:3rem;
 }

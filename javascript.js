@@ -7,6 +7,7 @@ var canvas;
 var canvasDiv;
 var canvasImg;
 var color;
+var lineWidth = 7;
 
 var graphcut;
 
@@ -57,6 +58,10 @@ function InitThis() {
 
     canvasDiv.style.width  = canvasImg.naturalWidth*factor + 10 + "px";
     canvasDiv.style.height = canvasImg.naturalHeight*factor + 10 + "px";
+
+    //Body pour cette page = Fenêtre modale pour les plugins
+    document.body.style.width  = canvasImg.naturalWidth*factor * 1.5 + 10 + "px";
+    document.body.style.height = canvasImg.naturalHeight*factor * 1.5 + 10 + "px";
     
 
     $('#canvas').mousedown(function (e) {
@@ -78,7 +83,8 @@ function InitThis() {
         mousePressed = false;
     });
 
-    $(".canvas-button").click(function(){
+    $(".color-button").click(function(){
+        ctx.globalCompositeOperation = "source-over";
         switch($(this).attr("id")){
             case "color1" : 
                 color = "black";
@@ -91,6 +97,20 @@ function InitThis() {
                 break;
             case "color4" :
                 color = "blue";
+                break;
+        }
+    });
+
+    $("#size-select div").click(function(){
+        switch($(this).attr("id")){
+            case "size1" : 
+                lineWidth = 3;
+                break;
+            case "size2" : 
+                lineWidth = 7;
+                break;
+            case "size3" :
+                lineWidth = 11;
                 break;
         }
     });
@@ -118,7 +138,7 @@ function Draw(x, y, isDown) {
     if (isDown) {
         ctx.beginPath();
         ctx.strokeStyle = color;
-        ctx.lineWidth = $('#selWidth').val();
+        ctx.lineWidth = lineWidth;
         ctx.lineJoin = "round";
         ctx.moveTo(lastX/factor, lastY/factor);
         ctx.lineTo(x/factor, y/factor);
