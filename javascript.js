@@ -178,7 +178,7 @@ function Draw(x, y, isDown) {
             var percent = 15/(Math.abs(x-lastX) + Math.abs(y-lastY));
             console.log("sup >, vectX : ",vectorX,"vectY : ",vectorY);
             console.log(percent);
-            while(Math.abs(x-interX) + Math.abs(y-interY) > 30 && Math.abs(interX) < 1000)
+            while(Math.abs(x-interX) + Math.abs(y-interY) > 30)
             {
                 interX += vectorX * percent ;
                 interY += vectorY * percent ;
