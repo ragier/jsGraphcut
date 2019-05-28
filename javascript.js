@@ -168,16 +168,17 @@ function Draw(x, y, isDown) {
         ctx.stroke();
     } else if (eraser) {
         
-        console.log((x-lastX + y-lastY));
+        console.log(Math.abs(x-lastX) + Math.abs(y-lastY));
 
-        if((x-lastX + y-lastY) > 30){
+        if(Math.abs(x-lastX) + Math.abs(y-lastY) > 30){
             var interX = lastX;
             var interY = lastY;
             var vectorX = x - lastX;
             var vectorY = y - lastY;
-            var percent = 30/(x-lastX + y-lastY);
+            var percent = 15/(Math.abs(x-lastX) + Math.abs(y-lastY));
             console.log("sup >, vectX : ",vectorX,"vectY : ",vectorY);
-            while(((x-interX + y-interY)) > 30)
+            console.log(percent);
+            while(Math.abs(x-interX) + Math.abs(y-interY) > 30 && Math.abs(interX) < 1000)
             {
                 interX += vectorX * percent ;
                 interY += vectorY * percent ;
@@ -186,25 +187,6 @@ function Draw(x, y, isDown) {
                 ctx.arc(interX/factor,interY/factor,30,0,Math.PI*2);
                 ctx.fill();
                 ctx.stroke();
-                console.log("BOUCLE!!!!!");
-            }
-        } else if((x-lastX + y-lastY) < -30) {
-            var interX = lastX;
-            var interY = lastY;
-            var vectorX = x - lastX;
-            var vectorY = y - lastY;
-            var percent = 30/(x-lastX + y-lastY);
-            console.log("inf <, vectX : ",vectorX,"vectY : ",vectorY);
-            while((x-interX + y-interY) < -30)
-            { 
-                interX -= vectorX * percent;
-                interY -= vectorY * percent;
-                ctx.beginPath();
-                ctx.lineWidth = lineWidth;
-                ctx.arc(interX/factor,interY/factor,30,0,Math.PI*2);
-                ctx.fill();
-                ctx.stroke();
-                console.log("BOUCLE!!!!!");
             }
         }
         ctx.beginPath();
