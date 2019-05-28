@@ -6,8 +6,9 @@ window.onload = InitThis;
 var canvas;
 var canvasDiv;
 var canvasImg;
-var color;
+var color = "black";
 var lineWidth = 7;
+var eraser = false;
 
 var graphcut;
 
@@ -66,7 +67,15 @@ function InitThis() {
 
     $('#canvas').mousedown(function (e) {
         mousePressed = true;
-        Draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, false);
+        if(!eraser) {
+            Draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, false);
+        } else {
+            ctx.beginPath();
+            ctx.lineWidth = lineWidth;
+            ctx.arc(e.pageX - $(this).offset().left/factor,e.pageY - $(this).offset().top/factor,30,0,Math.PI*2);
+            ctx.fill();
+            ctx.stroke();
+        }
     });
 
     $('#canvas').mousemove(function (e) {
@@ -85,6 +94,7 @@ function InitThis() {
 
     $(".color-button").click(function(){
         ctx.globalCompositeOperation = "source-over";
+        eraser = false;
         switch($(this).attr("id")){
             case "color1" : 
                 color = "black";
@@ -115,6 +125,11 @@ function InitThis() {
         }
     });
 
+    $("#eraser").click(function(){
+        eraser=true;
+        ctx.globalCompositeOperation = "destination-out";
+    })
+
     $("#submit").click(function(){
         graphcut.segment();
         /*
@@ -135,7 +150,7 @@ function InitThis() {
 }
 
 function Draw(x, y, isDown) {
-    if (isDown) {
+    if (isDown && !eraser) {
         ctx.beginPath();
         ctx.strokeStyle = color;
         ctx.lineWidth = lineWidth;
@@ -144,7 +159,14 @@ function Draw(x, y, isDown) {
         ctx.lineTo(x/factor, y/factor);
         ctx.closePath();
         ctx.stroke();
+    } else if (eraser) {
+        ctx.beginPath();
+        ctx.lineWidth = lineWidth;
+        ctx.arc(x/factor,y/factor,30,0,Math.PI*2);
+        ctx.fill();
+        ctx.stroke();
     }
+    
     lastX = x; lastY = y;
 }
 	
