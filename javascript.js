@@ -67,6 +67,8 @@ function InitThis() {
 
     $('#canvas').mousedown(function (e) {
         mousePressed = true;
+        lastX =  e.pageX - $(this).offset().left;
+        lastY = e.pageY - $(this).offset().top;
         if(!eraser) {
             Draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, false);
         } else {
@@ -86,6 +88,8 @@ function InitThis() {
 
     $('#canvas').mouseup(function (e) {
         mousePressed = false;
+        lastX = null;
+        lastY = null;
     });
     
     $('#canvas').mouseleave(function (e) {
@@ -93,6 +97,7 @@ function InitThis() {
     });
 
     $(".color-button").click(function(){
+        $("#eraser").removeClass("active");
         ctx.globalCompositeOperation = "source-over";
         eraser = false;
         switch($(this).attr("id")){
@@ -126,6 +131,8 @@ function InitThis() {
     });
 
     $("#eraser").click(function(){
+        $(this).addClass("active");
+        $(".color-button").removeClass("active");
         eraser=true;
         ctx.globalCompositeOperation = "destination-out";
     })
@@ -160,6 +167,46 @@ function Draw(x, y, isDown) {
         ctx.closePath();
         ctx.stroke();
     } else if (eraser) {
+        
+        console.log((x-lastX + y-lastY));
+
+        if((x-lastX + y-lastY) > 30){
+            var interX = lastX;
+            var interY = lastY;
+            var vectorX = x - lastX;
+            var vectorY = y - lastY;
+            var percent = 30/(x-lastX + y-lastY);
+            console.log("sup >, vectX : ",vectorX,"vectY : ",vectorY);
+            while(((x-interX + y-interY)) > 30)
+            {
+                interX += vectorX * percent ;
+                interY += vectorY * percent ;
+                ctx.beginPath();
+                ctx.lineWidth = lineWidth;
+                ctx.arc(interX/factor,interY/factor,30,0,Math.PI*2);
+                ctx.fill();
+                ctx.stroke();
+                console.log("BOUCLE!!!!!");
+            }
+        } else if((x-lastX + y-lastY) < -30) {
+            var interX = lastX;
+            var interY = lastY;
+            var vectorX = x - lastX;
+            var vectorY = y - lastY;
+            var percent = 30/(x-lastX + y-lastY);
+            console.log("inf <, vectX : ",vectorX,"vectY : ",vectorY);
+            while((x-interX + y-interY) < -30)
+            { 
+                interX -= vectorX * percent;
+                interY -= vectorY * percent;
+                ctx.beginPath();
+                ctx.lineWidth = lineWidth;
+                ctx.arc(interX/factor,interY/factor,30,0,Math.PI*2);
+                ctx.fill();
+                ctx.stroke();
+                console.log("BOUCLE!!!!!");
+            }
+        }
         ctx.beginPath();
         ctx.lineWidth = lineWidth;
         ctx.arc(x/factor,y/factor,30,0,Math.PI*2);
