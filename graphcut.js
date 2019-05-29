@@ -3,9 +3,10 @@ const OPACITY_MASK = 72;
 
 
 class Graphcut {
-    constructor(img) {
+    constructor(img, prior) {
         this.img = img.data;
         this.gamma = 50;
+        this.prior = prior.data; //obj = 255, background = 0
   
         this.height = img.height;
         this.width = img.width;
@@ -195,7 +196,7 @@ class Graphcut {
 
         this.graph = new GCGraph();
 
-        var lambda = this.gamma*9;
+        var lambda = this.gamma*9; //50*9
 
         //var imgData = this.ctx.getImageData(0, 0, this.width, this.height);
         //var mask = imgData.data;
@@ -216,13 +217,17 @@ class Graphcut {
                 var toSink     = 100;
 
                 //red for source = foreground
-                if (this.mask.data[idx*4] >0 && this.mask.data[idx*4+3] == 255) {
+                if (this.mask && this.mask.data[idx*4] >0 && this.mask.data[idx*4+3] == 255) {
                     fromSource = lambda;
                     toSink = 0;
                 } //background
-                else if (this.mask.data[idx*4+1] >0 && this.mask.data[idx*4+3] == 255) {
+                else if (this.mask && this.mask.data[idx*4+1] >0 && this.mask.data[idx*4+3] == 255) {
                     fromSource = 0;
                     toSink = lambda;
+                }
+                else {
+                    fromSource = -Math.log(this.prior[idx*4]/256) * 0.1;
+                    toSink = -Math.log(1-this.prior[idx*4]/256) * 0.1;
                 }
 
 
@@ -276,8 +281,13 @@ onmessage = function(e) {
             busy = true;
             console.log("[worker] init");
             var img = e.data[1];
-            instance = new Graphcut(img);
+            var prior = e.data[2];
+            instance = new Graphcut(img, prior);
             instance.calcWeights();
+            mask = new ImageData(img.width, img.height);
+            instance.segment(mask);
+            postMessage(["segmented", mask]);
+
             postMessage(["initialized", ""]);
             busy = false;
         break;

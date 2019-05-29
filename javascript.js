@@ -29,8 +29,16 @@ function getImageData(img) {
     var imgData = tmpCtx.getImageData(0, 0, img.naturalWidth, img.naturalHeight);
     console.log(imgData);
     return imgData ;
+}
 
-    
+function getRemoteImageData(url, cb) {
+    var img = new Image();
+    img.onload = function(){
+        var data = getImageData(img);
+        cb(data);
+    };
+
+    img.src= url;
 }
 
 function InitThis() {
@@ -69,7 +77,12 @@ function InitThis() {
         }
       }
     //}
-    worker.postMessage(["init", imgData]);
+
+    getRemoteImageData("mask.jpg", function (prior) {
+        console.log(prior);
+        worker.postMessage(["init", imgData, prior]);
+    });
+    
 
 
     ///graphcut.drawWeights();
