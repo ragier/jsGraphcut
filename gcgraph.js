@@ -174,7 +174,7 @@ class GCGraph {
             }
 
             if (e0 <= 0) {
-                console.log("break");
+                //console.log("break");
                 break;
             }
 
@@ -205,7 +205,7 @@ class GCGraph {
             // modify weights of the edges along the path and collect orphans
             this.edges[e0].weight -= minWeight;
             this.edges[e0 ^ 1].weight += minWeight;
-            console.log(this.flow);
+            //console.log(this.flow);
             this.flow += minWeight;
 
             // k = 1: source tree, k = 0: destination tree

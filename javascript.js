@@ -11,7 +11,9 @@ var lineWidth = 7;
 var radius = 15;
 var eraser = false;
 
-var graphcut;
+var worker;
+var workerBusy = false;
+//var graphcut;
 
 var factor = 1;
 
@@ -36,9 +38,6 @@ function InitThis() {
     canvasDiv = document.getElementById("canvasdiv");
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext("2d");
-    ctx.globalAlpha = 0.5
-
-
 
     canvas.width = canvasImg.naturalWidth;
     canvas.height = canvasImg.naturalHeight;
@@ -47,12 +46,30 @@ function InitThis() {
     canvas.style.height = canvasImg.naturalHeight*factor + "px";
 
     //canvasImg.onload = function () {
-        var imgData = getImageData(canvasImg);
-        graphcut = new Graphcut(ctx, imgData);
-        console.log(canvasImg, imgData.data[0]);
+    var imgData = getImageData(canvasImg);
+    //graphcut = new Graphcut(ctx, imgData);
+    //console.log(canvasImg, imgData.data[0]);
+    //graphcut.calcWeights();
 
-        graphcut.calcWeights();
+    worker = new Worker('graphcut.js');
+
+    worker.onmessage = function(e) {
+        var action = e.data[0];
+
+        switch(action){
+            case "initialized" : 
+                console.log("[worker] initialized")
+            break;
+            case "segmented" : 
+                console.log("[worker] segmented")
+                var mask = e.data[1];
+                ctx.putImageData( mask, 0, 0 );
+                workerBusy = false;
+            break;
+        }
+      }
     //}
+    worker.postMessage(["init", imgData]);
 
 
     ///graphcut.drawWeights();
@@ -144,7 +161,15 @@ function InitThis() {
     })
 
     $("#submit").click(function(){
-        graphcut.segment();
+        //graphcut.segment();
+        if (workerBusy) {
+            console.log("Worker already busy");
+            return;
+        }
+        workerBusy = true;
+        img = document.getElementById("canvasimg");
+        var mask = ctx.getImageData(0, 0, img.naturalWidth, img.naturalHeight);
+        worker.postMessage(["segment", mask]);
         /*
         canvas.toBlob(function(blob){
             

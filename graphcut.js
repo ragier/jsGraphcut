@@ -3,16 +3,13 @@ const OPACITY_MASK = 72;
 
 
 class Graphcut {
-    constructor(ctx, img) {
-      this.ctx = ctx;
-      this.img = img.data;
-      console.log(ctx);
-      console.log(this.img[0]);
-      this.gamma = 50;
-
-      this.height = img.height;
-      this.width = img.width;
-    }
+    constructor(img) {
+        this.img = img.data;
+        this.gamma = 50;
+  
+        this.height = img.height;
+        this.width = img.width;
+      }
 
     calcWeights() {
         console.log("calcWeight : ", this.width * this.height);
@@ -140,7 +137,7 @@ class Graphcut {
 
         return beta;
     }
-
+/*
     drawWeights() {
         var id = this.ctx.createImageData(this.width, this.height); // only do this once per page
         var d  = id.data;                        // only do this once per page
@@ -159,13 +156,12 @@ class Graphcut {
         }
         this.ctx.putImageData( id, 0, 0 );     
     }
-
+*/
 
 
     drawMask()
     {
-        var imgData = this.ctx.getImageData(0, 0, this.width, this.height);
-        var d  = imgData.data;                        // only do this once per page
+        var d  = this.mask.data;                        // only do this once per page
 
         for( var y = 0; y < this.height; y++ )
         {
@@ -190,8 +186,8 @@ class Graphcut {
                 }
             }
         }
-        this.ctx.putImageData( imgData, 0, 0 );     
-
+        //this.ctx.putImageData( imgData, 0, 0 );     
+        return this.mask;
     }
 
 
@@ -201,9 +197,9 @@ class Graphcut {
 
         var lambda = this.gamma*9;
 
-        var imgData = this.ctx.getImageData(0, 0, this.width, this.height);
-        var mask = imgData.data;
-        console.log("mask : ", mask);
+        //var imgData = this.ctx.getImageData(0, 0, this.width, this.height);
+        //var mask = imgData.data;
+        console.log("mask : ", this.mask);
         for( var y = 0; y < this.height; y++ )
         {
             for( var x = 0; x < this.width; x++)
@@ -220,11 +216,11 @@ class Graphcut {
                 var toSink     = 100;
 
                 //red for source = foreground
-                if (mask[idx*4] >0 && mask[idx*4+3] == 255) {
+                if (this.mask.data[idx*4] >0 && this.mask.data[idx*4+3] == 255) {
                     fromSource = lambda;
                     toSink = 0;
                 } //background
-                else if (mask[idx*4+1] >0 && mask[idx*4+3] == 255) {
+                else if (this.mask.data[idx*4+1] >0 && this.mask.data[idx*4+3] == 255) {
                     fromSource = 0;
                     toSink = lambda;
                 }
@@ -258,14 +254,40 @@ class Graphcut {
         }
     }
 
-    segment() {
+    segment(mask) {
+        this.mask = mask;
         console.log("construct graph");
         this.constructGraph();
 
-        //return;
         console.log("maxFlow");
-        console.log("init flow", this.graph.flow);
         console.log( this.graph.maxFlow() );
-        this.drawMask();
+        return this.drawMask();
     }
 }
+
+
+var instance;
+importScripts('gcgraph.js');
+onmessage = function(e) {
+    var action = e.data[0];
+
+    switch(action){
+        case "init" : 
+            busy = true;
+            console.log("[worker] init");
+            var img = e.data[1];
+            instance = new Graphcut(img);
+            instance.calcWeights();
+            postMessage(["initialized", ""]);
+            busy = false;
+        break;
+        case "segment" : 
+            busy = true;
+            console.log("[worker] segment");
+            var mask = e.data[1];
+            instance.segment(mask);
+            postMessage(["segmented", instance.mask]);
+            busy = false;
+        break;
+    }
+    }
