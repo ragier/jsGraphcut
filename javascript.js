@@ -80,7 +80,7 @@ function InitThis() {
             ctx.stroke();
         }
     });
-
+    
     $('#canvas').mousemove(function (e) {
         if (mousePressed) {
             Draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, true);
