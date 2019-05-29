@@ -91,7 +91,8 @@
 	border-width:2px;
 	position:absolute;
 	pointer-events: none;
-	border-color: rgba(200,200,200,0.8);
+	border-color: red;
+	z-index:3;
 }
 
 #canvas:hover{
