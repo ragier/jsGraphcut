@@ -35,6 +35,8 @@ function InitThis() {
     canvasDiv = document.getElementById("canvasdiv");
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext("2d");
+    ctx.globalAlpha = 0.5
+
 
 
     canvas.width = canvasImg.naturalWidth;

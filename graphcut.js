@@ -1,3 +1,7 @@
+const OPACITY_DRAW = 255;
+const OPACITY_MASK = 72;
+
+
 class Graphcut {
     constructor(ctx, img) {
       this.ctx = ctx;
@@ -150,7 +154,7 @@ class Graphcut {
                 d[idx*4]     = this.uprightW[idx];
                 d[idx*4+1]   = this.uprightW[idx];
                 d[idx*4+2]   = this.uprightW[idx];
-                d[idx*4+3]   = 255;
+                d[idx*4+3]   = OPACITY_DRAW;
             }
         }
         this.ctx.putImageData( id, 0, 0 );     
@@ -160,30 +164,33 @@ class Graphcut {
 
     drawMask()
     {
-        var id = this.ctx.createImageData(this.width, this.height); // only do this once per page
-        var d  = id.data;                        // only do this once per page
+        var imgData = this.ctx.getImageData(0, 0, this.width, this.height);
+        var d  = imgData.data;                        // only do this once per page
 
         for( var y = 0; y < this.height; y++ )
         {
             for( var x = 0; x < this.width; x++ )
             {
                 var idx = (y*this.width + x);
+
+                if (d[idx*4+3] == OPACITY_DRAW) continue;
+
                 if( this.graph.inSourceSegment( idx ) ) {
                     d[idx*4]     = 255;
                     d[idx*4+1]   = 0;
                     d[idx*4+2]   = 0;
-                    d[idx*4+3]   = 96;
+                    d[idx*4+3]   = OPACITY_MASK;
                 }
                 else
                 {
                     d[idx*4]     = 0;
-                    d[idx*4+1]   = 0;
+                    d[idx*4+1]   = 255;
                     d[idx*4+2]   = 0;
-                    d[idx*4+3]   = 0;
+                    d[idx*4+3]   = OPACITY_MASK;
                 }
             }
         }
-        this.ctx.putImageData( id, 0, 0 );     
+        this.ctx.putImageData( imgData, 0, 0 );     
 
     }
 
@@ -213,11 +220,11 @@ class Graphcut {
                 var toSink     = 100;
 
                 //red for source = foreground
-                if (mask[idx*4] >0) {
+                if (mask[idx*4] >0 && mask[idx*4+3] == 255) {
                     fromSource = lambda;
                     toSink = 0;
                 } //background
-                else if (mask[idx*4+1] >0) {
+                else if (mask[idx*4+1] >0 && mask[idx*4+3] == 255) {
                     fromSource = 0;
                     toSink = lambda;
                 }

@@ -18,6 +18,10 @@
 	top: 0;
 }
 
+#canvas {
+	opacity: 0.6;
+}
+
 #body {
 	background-color: rgb(80,80,80);
 	text-align:center;
