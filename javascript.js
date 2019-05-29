@@ -236,16 +236,12 @@ function Draw(x, y, isDown) {
         ctx.closePath();
         ctx.stroke();
     } else if (eraser) {
-        console.log(Math.abs(x-lastX) + Math.abs(y-lastY));
-
         if(Math.abs(x-lastX) + Math.abs(y-lastY) > radius){
             var interX = lastX;
             var interY = lastY;
             var vectorX = x - lastX;
             var vectorY = y - lastY;
             var percent = (radius/4)/(Math.abs(x-lastX) + Math.abs(y-lastY));
-            console.log("sup >, vectX : ",vectorX,"vectY : ",vectorY);
-            console.log(percent);
             while(Math.abs(x-interX) + Math.abs(y-interY) > radius)
             {
                 interX += vectorX * percent ;
