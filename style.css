@@ -65,20 +65,35 @@
 	flex-grow: 0;
 }
 
-#size1{
+.size1{
 	width:1.2rem;
 	height:1.2rem;
 	border-radius:1.2rem;
 }
 
-#size2{
+.size2{
 	width:1.7rem;
 	height:1.7rem;
 	border-radius:1.7rem;
 }
 
-#size3{
+.size3{
 	width:2.2rem;
 	height:2.2rem;
 	border-radius:2.2rem;
+}
+
+#cursor{
+	width:7px;
+	height:7px;
+	border-style:dashed;
+	border-radius:7px;
+	border-width:2px;
+	position:absolute;
+	pointer-events: none;
+	border-color: rgba(200,200,200,0.8);
+}
+
+#canvas:hover{
+	cursor:none;
 }

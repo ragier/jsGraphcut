@@ -19,34 +19,33 @@
 				<input type="button" class="btn btn-secondary" value="Bouton1">
 				<input type="button" class="btn btn-secondary" value="Bouton2">
 			</div>
-			<div id="top-right" class="btn-group btn-group-toggle" data-toggle="buttons">
-				<label class="btn btn-secondary color-button active" id="color1"> <input type="radio" class="color-button">Black</label>
+			<div id="top-right" class="btn-group btn-group-toggle" data-toggle="buttons">				
+				<label class="btn btn-secondary color-button active" id="background"> <input type="radio" class="color-button">Background</label>
 				
-				<label class="btn btn-secondary color-button" id="color2"> <input type="radio" class="color-button">Red</label>
+				<label class="btn btn-secondary color-button" id="eraser"><input type="radio" class="color-button">Erase</label>
 				
-				<label class="btn btn-secondary color-button" id="color3"> <input type="radio" class="color-button">Green</label>
-				
-				<label class="btn btn-secondary color-button" id="color4"> <input type="radio" class="color-button">Blue</label>
+				<label class="btn btn-secondary color-button" id="foreground"> <input type="radio" class="color-button">Foreground</label>
 			</div>
 		</div>
 
 		<div id="size-select" class="btn-group btn-group-toggle" data-toggle="buttons">
-			<label class="btn btn-secondary active"> <input type="radio" class="color-button"><div id="size1"></div></label>
+			<label id="size1" class="btn btn-secondary"> <input type="radio" class="color-button"><div class="size1"></div></label>
 			
-			<label class="btn btn-secondary"> <input type="radio" class="color-button"><div id="size2"></div></label>
+			<label id="size2" class="btn btn-secondary active"> <input type="radio" class="color-button"><div class="size2"></div></label>
 
 			
-			<label class="btn btn-secondary"> <input type="radio" class="color-button"><div id="size3"></div></label>
+			<label id="size3" class="btn btn-secondary"> <input type="radio" class="color-button"><div class="size3"></div></label>
 		</div>
 
-		<div id="canvasdiv"><canvas id="canvas"></canvas><img id="canvasimg" src="11.jpg" /></div>
-
+		<div id="canvasdiv">
+			<div id="cursor" style="display:none;"></div>
+			<canvas id="canvas"></canvas><img id="canvasimg" src="11.jpg"/>
+		</div>
 		<div id="bottom-buttons">
 			<div id="bottom-left">
-				<button class="btn btn-primary" id="submit">Envoyer</button>
 			</div>
 			<div id="bottom-right">
-				<button class="btn btn-secondary" id="eraser">Gomme</button>
+				<button class="btn btn-primary" id="submit">Envoyer</button>
 			</div>
 		</div>
 
