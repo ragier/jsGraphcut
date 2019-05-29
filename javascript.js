@@ -6,7 +6,7 @@ window.onload = InitThis;
 var canvas;
 var canvasDiv;
 var canvasImg;
-var color = "black";
+var color = "red";
 var lineWidth = 7;
 var radius = 15;
 var eraser = false;
@@ -96,7 +96,6 @@ function InitThis() {
     //Body pour cette page = Fenêtre modale pour les plugins
     document.body.style.width  = canvasImg.naturalWidth*factor * 1.5 + 10 + "px";
     document.body.style.height = canvasImg.naturalHeight*factor * 1.5 + 10 + "px";
-    
 
     $('#canvas').mousedown(function (e) {
         mousePressed = true;
@@ -112,10 +111,17 @@ function InitThis() {
             ctx.stroke();
         }
     });
-
+    
     $('#canvas').mousemove(function (e) {
         if (mousePressed) {
             Draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, true);
+        }
+        if(!eraser){
+            $('#cursor').css("left",e.pageX - $(this).offset().left - lineWidth/2);
+            $('#cursor').css("top",e.pageY - $(this).offset().top - lineWidth/2);
+        } else {
+            $('#cursor').css("left",e.pageX - $(this).offset().left - radius*1.4);
+            $('#cursor').css("top",e.pageY - $(this).offset().top - radius*1.4);
         }
     });
 
@@ -127,29 +133,35 @@ function InitThis() {
     
     $('#canvas').mouseleave(function (e) {
         mousePressed = false;
+        $('#cursor').hide();
+    });
+
+    $('#canvas').mouseenter(function (e) {
+        $('#cursor').show();
     });
 
     $(".color-button").click(function(){
-        $("#eraser").removeClass("active");
         ctx.globalCompositeOperation = "source-over";
         eraser = false;
         switch($(this).attr("id")){
-            case "color1" : 
-                color = "black";
-                break;
-            case "color2" : 
+            case "background" : 
                 color = "red";
                 break;
-            case "color3" :
+            case "foreground" : 
                 color = "green";
                 break;
-            case "color4" :
-                color = "blue";
+            case "eraser" :
+                color = "white";
                 break;
         }
+
+        $('#cursor').css("border-color",color);
+        $('#cursor').css("width",lineWidth);
+        $('#cursor').css("height",lineWidth);
+        $('#cursor').css("border-radius",lineWidth);
     });
 
-    $("#size-select div").click(function(){
+    $("#size-select label").click(function(){
         switch($(this).attr("id")){
             case "size1" : 
                 lineWidth = 3;
@@ -164,13 +176,24 @@ function InitThis() {
                 radius = 20;
                 break;
         }
+        if(!eraser) {
+            $('#cursor').css("width",lineWidth);
+            $('#cursor').css("height",lineWidth);
+            $('#cursor').css("border-radius",lineWidth);
+        } else{
+            $('#cursor').css("width",radius*2.8);
+            $('#cursor').css("height",radius*2.8);
+            $('#cursor').css("border-radius",radius*2.8);
+        }
     });
 
     $("#eraser").click(function(){
-        $(this).addClass("active");
-        $(".color-button").removeClass("active");
         eraser=true;
         ctx.globalCompositeOperation = "destination-out";
+        
+        $('#cursor').css("width",radius*2.8);
+        $('#cursor').css("height",radius*2.8);
+        $('#cursor').css("border-radius",radius*2.8);
     })
 
     $("#submit").click(function(){
