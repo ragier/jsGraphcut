@@ -86,9 +86,9 @@
 #cursor{
 	width:7px;
 	height:7px;
-	border-style:dashed;
+	border-style:solid;
 	border-radius:7px;
-	border-width:2px;
+	border-width: 1px;
 	position:absolute;
 	pointer-events: none;
 	border-color: red;

@@ -142,6 +142,7 @@ function InitThis() {
 
     $(".color-button").click(function(){
         ctx.globalCompositeOperation = "source-over";
+        $('#cursor').css("border-style","solid");
         eraser = false;
         switch($(this).attr("id")){
             case "background" : 
@@ -191,6 +192,7 @@ function InitThis() {
         eraser=true;
         ctx.globalCompositeOperation = "destination-out";
         
+        $('#cursor').css("border-style","dashed");
         $('#cursor').css("width",radius*2.8);
         $('#cursor').css("height",radius*2.8);
         $('#cursor').css("border-radius",radius*2.8);
@@ -236,12 +238,12 @@ function Draw(x, y, isDown) {
     } else if (eraser) {
         console.log(Math.abs(x-lastX) + Math.abs(y-lastY));
 
-        if(Math.abs(x-lastX) + Math.abs(y-lastY) > 30){
+        if(Math.abs(x-lastX) + Math.abs(y-lastY) > radius){
             var interX = lastX;
             var interY = lastY;
             var vectorX = x - lastX;
             var vectorY = y - lastY;
-            var percent = (radius/2)/(Math.abs(x-lastX) + Math.abs(y-lastY));
+            var percent = (radius/4)/(Math.abs(x-lastX) + Math.abs(y-lastY));
             console.log("sup >, vectX : ",vectorX,"vectY : ",vectorY);
             console.log(percent);
             while(Math.abs(x-interX) + Math.abs(y-interY) > radius)
