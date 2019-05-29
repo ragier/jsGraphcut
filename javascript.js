@@ -8,6 +8,7 @@ var canvasDiv;
 var canvasImg;
 var color = "black";
 var lineWidth = 7;
+var radius = 15;
 var eraser = false;
 
 var graphcut;
@@ -76,7 +77,7 @@ function InitThis() {
         } else {
             ctx.beginPath();
             ctx.lineWidth = lineWidth;
-            ctx.arc(e.pageX - $(this).offset().left/factor,e.pageY - $(this).offset().top/factor,30,0,Math.PI*2);
+            ctx.arc(e.pageX - $(this).offset().left/factor,e.pageY - $(this).offset().top/factor,radius,0,Math.PI*2);
             ctx.fill();
             ctx.stroke();
         }
@@ -122,12 +123,15 @@ function InitThis() {
         switch($(this).attr("id")){
             case "size1" : 
                 lineWidth = 3;
+                radius = 10;
                 break;
             case "size2" : 
                 lineWidth = 7;
+                radius = 15;
                 break;
             case "size3" :
                 lineWidth = 11;
+                radius = 20;
                 break;
         }
     });
@@ -169,7 +173,6 @@ function Draw(x, y, isDown) {
         ctx.closePath();
         ctx.stroke();
     } else if (eraser) {
-        
         console.log(Math.abs(x-lastX) + Math.abs(y-lastY));
 
         if(Math.abs(x-lastX) + Math.abs(y-lastY) > 30){
@@ -177,23 +180,23 @@ function Draw(x, y, isDown) {
             var interY = lastY;
             var vectorX = x - lastX;
             var vectorY = y - lastY;
-            var percent = 15/(Math.abs(x-lastX) + Math.abs(y-lastY));
+            var percent = (radius/2)/(Math.abs(x-lastX) + Math.abs(y-lastY));
             console.log("sup >, vectX : ",vectorX,"vectY : ",vectorY);
             console.log(percent);
-            while(Math.abs(x-interX) + Math.abs(y-interY) > 30)
+            while(Math.abs(x-interX) + Math.abs(y-interY) > radius)
             {
                 interX += vectorX * percent ;
                 interY += vectorY * percent ;
                 ctx.beginPath();
                 ctx.lineWidth = lineWidth;
-                ctx.arc(interX/factor,interY/factor,30,0,Math.PI*2);
+                ctx.arc(interX/factor,interY/factor,radius,0,Math.PI*2);
                 ctx.fill();
                 ctx.stroke();
             }
         }
         ctx.beginPath();
         ctx.lineWidth = lineWidth;
-        ctx.arc(x/factor,y/factor,30,0,Math.PI*2);
+        ctx.arc(x/factor,y/factor,radius,0,Math.PI*2);
         ctx.fill();
         ctx.stroke();
     }
