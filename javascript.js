@@ -7,15 +7,15 @@ var canvas;
 var canvasDiv;
 var canvasImg;
 var color = "red";
-var lineWidth = 7;
-var radius = 15;
 var eraser = false;
 
 var worker;
 var workerBusy = false;
 //var graphcut;
 
-var factor = 1;
+var factor = 2;
+var lineWidth = 7;
+var radius = 15;
 
 function getImageData(img) {
     var tmpCanvas = document.createElement("canvas");
@@ -90,13 +90,16 @@ function InitThis() {
     canvasImg.style.width  = canvasImg.naturalWidth*factor + "px";
     canvasImg.style.height = canvasImg.naturalHeight*factor + "px";
 
-    canvasDiv.style.width  = canvasImg.naturalWidth*factor + 10 + "px";
-    canvasDiv.style.height = canvasImg.naturalHeight*factor + 10 + "px";
+    canvasDiv.style.width  = canvasImg.naturalWidth + 10 + "px";
+    canvasDiv.style.height = canvasImg.naturalHeight + 10 + "px";
 
     //Body pour cette page = Fenêtre modale pour les plugins
-    document.body.style.width  = canvasImg.naturalWidth*factor * 1.5 + 10 + "px";
-    document.body.style.height = canvasImg.naturalHeight*factor * 1.5 + 10 + "px";
-
+    document.body.style.width  = canvasImg.naturalWidth * 1.5 + 10 + "px";
+    document.body.style.height = canvasImg.naturalHeight * 1.5 + 10 + "px";
+    
+    $('#cursor').css("width",lineWidth*factor);
+    $('#cursor').css("height",lineWidth*factor);
+    
     $('#canvas').mousedown(function (e) {
         mousePressed = true;
         lastX =  e.pageX - $(this).offset().left;
@@ -117,11 +120,11 @@ function InitThis() {
             Draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, true);
         }
         if(!eraser){
-            $('#cursor').css("left",e.pageX - $(this).offset().left - lineWidth/2);
-            $('#cursor').css("top",e.pageY - $(this).offset().top - lineWidth/2);
+            $('#cursor').css("left",e.pageX - $(this).offset().left - factor*lineWidth/2);
+            $('#cursor').css("top",e.pageY - $(this).offset().top - factor*lineWidth/2);
         } else {
-            $('#cursor').css("left",e.pageX - $(this).offset().left - radius*1.4);
-            $('#cursor').css("top",e.pageY - $(this).offset().top - radius*1.4);
+            $('#cursor').css("left",e.pageX - $(this).offset().left - factor*radius*1.4);
+            $('#cursor').css("top",e.pageY - $(this).offset().top - factor*radius*1.4);
         }
     });
 
@@ -157,9 +160,9 @@ function InitThis() {
         }
 
         $('#cursor').css("border-color",color);
-        $('#cursor').css("width",lineWidth);
-        $('#cursor').css("height",lineWidth);
-        $('#cursor').css("border-radius",lineWidth);
+        $('#cursor').css("width",lineWidth*factor);
+        $('#cursor').css("height",lineWidth*factor);
+        $('#cursor').css("border-radius",lineWidth*factor);
     });
 
     $("#size-select label").click(function(){
@@ -178,13 +181,13 @@ function InitThis() {
                 break;
         }
         if(!eraser) {
-            $('#cursor').css("width",lineWidth);
-            $('#cursor').css("height",lineWidth);
-            $('#cursor').css("border-radius",lineWidth);
+            $('#cursor').css("width",lineWidth*factor);
+            $('#cursor').css("height",lineWidth*factor);
+            $('#cursor').css("border-radius",lineWidth*factor);
         } else{
-            $('#cursor').css("width",radius*2.8);
-            $('#cursor').css("height",radius*2.8);
-            $('#cursor').css("border-radius",radius*2.8);
+            $('#cursor').css("width",radius*2.8*factor);
+            $('#cursor').css("height",radius*2.8*factor);
+            $('#cursor').css("border-radius",radius*2.8*factor);
         }
     });
 
@@ -193,9 +196,9 @@ function InitThis() {
         ctx.globalCompositeOperation = "destination-out";
         
         $('#cursor').css("border-style","dashed");
-        $('#cursor').css("width",radius*2.8);
-        $('#cursor').css("height",radius*2.8);
-        $('#cursor').css("border-radius",radius*2.8);
+        $('#cursor').css("width",radius*2.8*factor);
+        $('#cursor').css("height",radius*2.8*factor);
+        $('#cursor').css("border-radius",radius*2.8*factor);
     })
 
     $("#submit").click(function(){

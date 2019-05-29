@@ -9,6 +9,7 @@
 	border-style:solid;
 	border-width:5px;
 	position:relative;
+	overflow:auto;
 }
 
 #canvasimg{
