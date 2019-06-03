@@ -8,6 +8,7 @@ var canvasDiv;
 var canvasImg;
 var color = "red";
 var eraser = false;
+var ratio;
 
 var worker;
 var workerBusy = false;
@@ -46,12 +47,14 @@ function InitThis() {
     canvasDiv = document.getElementById("canvasdiv");
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext("2d");
+    
+    ratio = 650/canvasImg.naturalWidth;
 
     canvas.width = canvasImg.naturalWidth;
     canvas.height = canvasImg.naturalHeight;
 
-    canvas.style.width = canvasImg.naturalWidth*factor + "px";
-    canvas.style.height = canvasImg.naturalHeight*factor + "px";
+    canvas.style.width = canvasImg.naturalWidth*factor*ratio + "px";
+    canvas.style.height = canvasImg.naturalHeight*factor*ratio + "px";
 
     //canvasImg.onload = function () {
     var imgData = getImageData(canvasImg);
@@ -87,18 +90,19 @@ function InitThis() {
 
     ///graphcut.drawWeights();
 
-    canvasImg.style.width  = canvasImg.naturalWidth*factor + "px";
-    canvasImg.style.height = canvasImg.naturalHeight*factor + "px";
+    canvasImg.style.width  = canvasImg.naturalWidth*factor*ratio + "px";
+    canvasImg.style.height = canvasImg.naturalHeight*factor*ratio + "px";
 
-    canvasDiv.style.width  = canvasImg.naturalWidth + 10 + "px";
-    canvasDiv.style.height = canvasImg.naturalHeight + 5 + "px";
+    canvasDiv.style.width  = 650 + 10 + "px";
+    canvasDiv.style.height = canvasImg.naturalHeight*ratio + 5 + "px";
 
     //Body pour cette page = Fenêtre modale pour les plugins
-    document.body.style.width  = canvasImg.naturalWidth * 1.5 + 10 + "px";
-    document.body.style.height = canvasImg.naturalHeight * 1.5 + 10 + "px";
+    document.body.style.width  = 650 * 1.5 + 10 + "px";
+    document.body.style.height = canvasImg.naturalHeight*ratio * 1.5 + 10 + "px";
     
-    $('#cursor').css("width",lineWidth*factor);
-    $('#cursor').css("height",lineWidth*factor);
+    $('#cursor').css("width",lineWidth*factor*ratio);
+    $('#cursor').css("height",lineWidth*factor*ratio);
+    $('#cursor').css("border-radius",lineWidth*factor*ratio);
     
     $('#canvas').mousedown(function (e) {
         mousePressed = true;
@@ -112,11 +116,11 @@ function InitThis() {
             Draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, true);
         }
         if(!eraser){
-            $('#cursor').css("left",e.pageX - $(this).offset().left - factor*lineWidth/2);
-            $('#cursor').css("top",e.pageY - $(this).offset().top - factor*lineWidth/2);
+            $('#cursor').css("left",e.pageX - $(this).offset().left - factor*ratio*lineWidth/2);
+            $('#cursor').css("top",e.pageY - $(this).offset().top - factor*ratio*lineWidth/2);
         } else {
-            $('#cursor').css("left",e.pageX - $(this).offset().left - factor*radius*1.4);
-            $('#cursor').css("top",e.pageY - $(this).offset().top - factor*radius*1.4);
+            $('#cursor').css("left",e.pageX - $(this).offset().left - factor*ratio*radius*1.35);
+            $('#cursor').css("top",e.pageY - $(this).offset().top - factor*ratio*radius*1.35);
         }
     });
 
@@ -152,9 +156,9 @@ function InitThis() {
         }
 
         $('#cursor').css("border-color",color);
-        $('#cursor').css("width",lineWidth*factor);
-        $('#cursor').css("height",lineWidth*factor);
-        $('#cursor').css("border-radius",lineWidth*factor);
+        $('#cursor').css("width",lineWidth*factor*ratio);
+        $('#cursor').css("height",lineWidth*factor*ratio);
+        $('#cursor').css("border-radius",lineWidth*factor*ratio);
     });
 
     $(".zoom-button").click(function(){
@@ -194,9 +198,9 @@ function InitThis() {
         ctx.globalCompositeOperation = "destination-out";
         
         $('#cursor').css("border-style","dashed");
-        $('#cursor').css("width",radius*2.8*factor);
-        $('#cursor').css("height",radius*2.8*factor);
-        $('#cursor').css("border-radius",radius*2.8*factor);
+        $('#cursor').css("width",radius*2.7*factor*ratio);
+        $('#cursor').css("height",radius*2.7*factor*ratio);
+        $('#cursor').css("border-radius",radius*2.7*factor*ratio);
     })
 
     $("#submit").click(function(){
@@ -232,8 +236,8 @@ function Draw(x, y, isDown) {
         ctx.strokeStyle = color;
         ctx.lineWidth = lineWidth;
         ctx.lineJoin = "round";
-        ctx.moveTo(lastX/factor, lastY/factor);
-        ctx.lineTo(x/factor, y/factor);
+        ctx.moveTo(lastX/(factor*ratio), lastY/(factor*ratio));
+        ctx.lineTo(x/(factor*ratio), y/(factor*ratio));
         ctx.closePath();
         ctx.stroke();
     } else if (eraser) {
@@ -249,14 +253,14 @@ function Draw(x, y, isDown) {
                 interY += vectorY * percent ;
                 ctx.beginPath();
                 ctx.lineWidth = lineWidth;
-                ctx.arc(interX/factor,interY/factor,radius,0,Math.PI*2);
+                ctx.arc(interX/(factor*ratio),interY/(factor*ratio),radius,0,Math.PI*2);
                 ctx.fill();
                 ctx.stroke();
             }
         }
         ctx.beginPath();
         ctx.lineWidth = lineWidth;
-        ctx.arc(x/factor,y/factor,radius,0,Math.PI*2);
+        ctx.arc(x/(factor*ratio),y/(factor*ratio),radius,0,Math.PI*2);
         ctx.fill();
         ctx.stroke();
     }
@@ -272,24 +276,24 @@ function updateZoom(newFactor) {
     }
     factor = newFactor;
 
-    canvasImg.style.width  = canvasImg.naturalWidth*newFactor + "px";
-    canvasImg.style.height = canvasImg.naturalHeight*newFactor + "px";
+    canvasImg.style.width  = canvasImg.naturalWidth*newFactor*ratio + "px";
+    canvasImg.style.height = canvasImg.naturalHeight*newFactor*ratio + "px";
     
-    canvas.style.width = canvasImg.naturalWidth*newFactor + "px";
-    canvas.style.height = canvasImg.naturalHeight*newFactor + "px";
+    canvas.style.width = canvasImg.naturalWidth*newFactor*ratio + "px";
+    canvas.style.height = canvasImg.naturalHeight*newFactor*ratio + "px";
 
     updateCursorSize();
 }
 
 function updateCursorSize(){
     if(!eraser) {
-        $('#cursor').css("width",lineWidth*factor);
-        $('#cursor').css("height",lineWidth*factor);
-        $('#cursor').css("border-radius",lineWidth*factor);
+        $('#cursor').css("width",lineWidth*factor*ratio);
+        $('#cursor').css("height",lineWidth*factor*ratio);
+        $('#cursor').css("border-radius",lineWidth*factor*ratio);
     } else{
-        $('#cursor').css("width",radius*2.8*factor);
-        $('#cursor').css("height",radius*2.8*factor);
-        $('#cursor').css("border-radius",radius*2.8*factor);
+        $('#cursor').css("width",radius*2.7*factor*ratio);
+        $('#cursor').css("height",radius*2.7*factor*ratio);
+        $('#cursor').css("border-radius",radius*2.7*factor*ratio);
     }
 }
 
