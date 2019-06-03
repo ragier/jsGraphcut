@@ -21,11 +21,11 @@
 
 #canvas {
 	opacity: 0.6;
+	margin-left: none;
 }
 
 #body {
 	background-color: rgb(80,80,80);
-	text-align:center;
 	margin:auto;
 }
 

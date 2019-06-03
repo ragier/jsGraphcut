@@ -13,7 +13,7 @@ var worker;
 var workerBusy = false;
 //var graphcut;
 
-var factor = 2;
+var factor = 1.5;
 var lineWidth = 7;
 var radius = 15;
 
@@ -91,7 +91,7 @@ function InitThis() {
     canvasImg.style.height = canvasImg.naturalHeight*factor + "px";
 
     canvasDiv.style.width  = canvasImg.naturalWidth + 10 + "px";
-    canvasDiv.style.height = canvasImg.naturalHeight + 10 + "px";
+    canvasDiv.style.height = canvasImg.naturalHeight + 5 + "px";
 
     //Body pour cette page = Fenêtre modale pour les plugins
     document.body.style.width  = canvasImg.naturalWidth * 1.5 + 10 + "px";
@@ -104,15 +104,7 @@ function InitThis() {
         mousePressed = true;
         lastX =  e.pageX - $(this).offset().left;
         lastY = e.pageY - $(this).offset().top;
-        if(!eraser) {
-            Draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, false);
-        } else {
-            ctx.beginPath();
-            ctx.lineWidth = lineWidth;
-            ctx.arc(e.pageX - $(this).offset().left/factor,e.pageY - $(this).offset().top/factor,radius,0,Math.PI*2);
-            ctx.fill();
-            ctx.stroke();
-        }
+        Draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, false);
     });
     
     $('#canvas').mousemove(function (e) {
@@ -165,6 +157,20 @@ function InitThis() {
         $('#cursor').css("border-radius",lineWidth*factor);
     });
 
+    $(".zoom-button").click(function(){
+        switch($(this).attr("id")){
+            case "zoom1" :
+                updateZoom(.5);
+                break;
+            case "zoom2" :
+                updateZoom(1);
+                break;
+            case "zoom3" :
+                updateZoom(1.5);
+                break;
+        }
+    });
+
     $("#size-select label").click(function(){
         switch($(this).attr("id")){
             case "size1" : 
@@ -180,15 +186,7 @@ function InitThis() {
                 radius = 20;
                 break;
         }
-        if(!eraser) {
-            $('#cursor').css("width",lineWidth*factor);
-            $('#cursor').css("height",lineWidth*factor);
-            $('#cursor').css("border-radius",lineWidth*factor);
-        } else{
-            $('#cursor').css("width",radius*2.8*factor);
-            $('#cursor').css("height",radius*2.8*factor);
-            $('#cursor').css("border-radius",radius*2.8*factor);
-        }
+        updateCursorSize();
     });
 
     $("#eraser").click(function(){
@@ -262,10 +260,39 @@ function Draw(x, y, isDown) {
         ctx.fill();
         ctx.stroke();
     }
-    
     lastX = x; lastY = y;
 }
-	
+
+function updateZoom(newFactor) {
+    if(newFactor <=1)
+    {
+        $('#canvasdiv').css("overflow","hidden");
+    } else {
+        $('#canvasdiv').css("overflow","auto");
+    }
+    factor = newFactor;
+
+    canvasImg.style.width  = canvasImg.naturalWidth*newFactor + "px";
+    canvasImg.style.height = canvasImg.naturalHeight*newFactor + "px";
+    
+    canvas.style.width = canvasImg.naturalWidth*newFactor + "px";
+    canvas.style.height = canvasImg.naturalHeight*newFactor + "px";
+
+    updateCursorSize();
+}
+
+function updateCursorSize(){
+    if(!eraser) {
+        $('#cursor').css("width",lineWidth*factor);
+        $('#cursor').css("height",lineWidth*factor);
+        $('#cursor').css("border-radius",lineWidth*factor);
+    } else{
+        $('#cursor').css("width",radius*2.8*factor);
+        $('#cursor').css("height",radius*2.8*factor);
+        $('#cursor').css("border-radius",radius*2.8*factor);
+    }
+}
+
 function clearArea() {
     // Use the identity matrix while clearing the canvas
     ctx.setTransform(1, 0, 0, 1, 0, 0);
