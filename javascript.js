@@ -14,7 +14,7 @@ var worker;
 var workerBusy = false;
 //var graphcut;
 
-var factor = 1.5;
+var factor = 1;
 var lineWidth = 7;
 var radius = 15;
 
@@ -94,7 +94,7 @@ function InitThis() {
     canvasImg.style.height = canvasImg.naturalHeight*factor*ratio + "px";
 
     canvasDiv.style.width  = 650 + 10 + "px";
-    canvasDiv.style.height = canvasImg.naturalHeight*ratio + 5 + "px";
+    canvasDiv.style.height = canvasImg.naturalHeight*ratio + "px";
 
     //Body pour cette page = Fenêtre modale pour les plugins
     document.body.style.width  = 650 * 1.5 + 10 + "px";
@@ -164,13 +164,13 @@ function InitThis() {
     $(".zoom-button").click(function(){
         switch($(this).attr("id")){
             case "zoom1" :
-                updateZoom(.5);
-                break;
-            case "zoom2" :
                 updateZoom(1);
                 break;
-            case "zoom3" :
+            case "zoom2" :
                 updateZoom(1.5);
+                break;
+            case "zoom3" :
+                updateZoom(2);
                 break;
         }
     });
