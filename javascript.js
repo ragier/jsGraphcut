@@ -167,10 +167,10 @@ function InitThis() {
                 updateZoom(1);
                 break;
             case "zoom2" :
-                updateZoom(1.5);
+                updateZoom(2);
                 break;
             case "zoom3" :
-                updateZoom(2);
+                updateZoom(3);
                 break;
         }
     });
@@ -178,16 +178,16 @@ function InitThis() {
     $("#size-select label").click(function(){
         switch($(this).attr("id")){
             case "size1" : 
-                lineWidth = 3;
-                radius = 10;
+                lineWidth = 7;
+                radius = 7;
                 break;
             case "size2" : 
-                lineWidth = 7;
-                radius = 15;
+                lineWidth = 11;
+                radius = 11;
                 break;
             case "size3" :
-                lineWidth = 11;
-                radius = 20;
+                lineWidth = 15;
+                radius = 15;
                 break;
         }
         updateCursorSize();
