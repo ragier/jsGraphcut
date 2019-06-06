@@ -8,26 +8,29 @@ var canvasDiv;
 var canvasImg;
 var color = "red";
 var eraser = false;
-var ratio;
+var ratio; //responsive ratio
 
 var worker;
 var workerBusy = false;
 //var graphcut;
 
-var factor = 1;
+var zoom = 1; //zoom factor
 var lineWidth = 7;
 var radius = 15;
+
+var pLength = 400;
+var pSize = [undefined, undefined];
 
 function getImageData(img) {
     var tmpCanvas = document.createElement("canvas");
 
-    tmpCanvas.width = img.naturalWidth;
-    tmpCanvas.height = img.naturalHeight;
+    tmpCanvas.width  = pSize[0];
+    tmpCanvas.height = pSize[1];
 
     var tmpCtx = tmpCanvas.getContext("2d");
-    tmpCtx.drawImage(img, 0, 0);
+    tmpCtx.drawImage(img, 0, 0, pSize[0], pSize[1]);
 
-    var imgData = tmpCtx.getImageData(0, 0, img.naturalWidth, img.naturalHeight);
+    var imgData = tmpCtx.getImageData(0, 0, pSize[0], pSize[1]);
     console.log(imgData);
     return imgData ;
 }
@@ -48,13 +51,21 @@ function InitThis() {
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext("2d");
     
+    aspectRatio = canvasImg.naturalHeight / canvasImg.naturalWidth;
+
+    pLength = Math.min(pLength, canvasImg.naturalHeight, canvasImg.naturalWidth)
+    console.log("pLength", pLength);
+    pSize = [pLength, pLength * aspectRatio];
+
     ratio = 650/canvasImg.naturalWidth;
 
-    canvas.width = canvasImg.naturalWidth;
-    canvas.height = canvasImg.naturalHeight;
+    console.log("ratio", ratio);
 
-    canvas.style.width = canvasImg.naturalWidth*factor*ratio + "px";
-    canvas.style.height = canvasImg.naturalHeight*factor*ratio + "px";
+    canvas.width = pSize[0];
+    canvas.height = pSize[1];
+
+    canvas.style.width = canvasImg.naturalWidth*zoom*ratio + "px";
+    canvas.style.height = canvasImg.naturalHeight*zoom*ratio + "px";
 
     //canvasImg.onload = function () {
     var imgData = getImageData(canvasImg);
@@ -90,8 +101,8 @@ function InitThis() {
 
     ///graphcut.drawWeights();
 
-    canvasImg.style.width  = canvasImg.naturalWidth*factor*ratio + "px";
-    canvasImg.style.height = canvasImg.naturalHeight*factor*ratio + "px";
+    canvasImg.style.width  = canvasImg.naturalWidth*zoom*ratio + "px";
+    canvasImg.style.height = canvasImg.naturalHeight*zoom*ratio + "px";
 
     canvasDiv.style.width  = 650 + 10 + "px";
     canvasDiv.style.height = canvasImg.naturalHeight*ratio + "px";
@@ -100,9 +111,9 @@ function InitThis() {
     document.body.style.width  = 650 * 1.5 + 10 + "px";
     document.body.style.height = canvasImg.naturalHeight*ratio * 1.5 + 10 + "px";
     
-    $('#cursor').css("width",lineWidth*factor*ratio);
-    $('#cursor').css("height",lineWidth*factor*ratio);
-    $('#cursor').css("border-radius",lineWidth*factor*ratio);
+    $('#cursor').css("width",lineWidth*zoom*ratio);
+    $('#cursor').css("height",lineWidth*zoom*ratio);
+    $('#cursor').css("border-radius",lineWidth*zoom*ratio);
     
     $('#canvas').mousedown(function (e) {
         mousePressed = true;
@@ -116,11 +127,11 @@ function InitThis() {
             Draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, true);
         }
         if(!eraser){
-            $('#cursor').css("left",e.pageX - $(this).offset().left - factor*ratio*lineWidth/2);
-            $('#cursor').css("top",e.pageY - $(this).offset().top - factor*ratio*lineWidth/2);
+            $('#cursor').css("left",e.pageX - $(this).offset().left - zoom*ratio*lineWidth/2);
+            $('#cursor').css("top",e.pageY - $(this).offset().top - zoom*ratio*lineWidth/2);
         } else {
-            $('#cursor').css("left",e.pageX - $(this).offset().left - factor*ratio*radius*1.35);
-            $('#cursor').css("top",e.pageY - $(this).offset().top - factor*ratio*radius*1.35);
+            $('#cursor').css("left",e.pageX - $(this).offset().left - zoom*ratio*radius*1.35);
+            $('#cursor').css("top",e.pageY - $(this).offset().top - zoom*ratio*radius*1.35);
         }
     });
 
@@ -156,9 +167,9 @@ function InitThis() {
         }
 
         $('#cursor').css("border-color",color);
-        $('#cursor').css("width",lineWidth*factor*ratio);
-        $('#cursor').css("height",lineWidth*factor*ratio);
-        $('#cursor').css("border-radius",lineWidth*factor*ratio);
+        $('#cursor').css("width",lineWidth*zoom*ratio);
+        $('#cursor').css("height",lineWidth*zoom*ratio);
+        $('#cursor').css("border-radius",lineWidth*zoom*ratio);
     });
 
     $(".zoom-button").click(function(){
@@ -198,9 +209,9 @@ function InitThis() {
         ctx.globalCompositeOperation = "destination-out";
         
         $('#cursor').css("border-style","dashed");
-        $('#cursor').css("width",radius*2.7*factor*ratio);
-        $('#cursor').css("height",radius*2.7*factor*ratio);
-        $('#cursor').css("border-radius",radius*2.7*factor*ratio);
+        $('#cursor').css("width",radius*2.7*zoom*ratio);
+        $('#cursor').css("height",radius*2.7*zoom*ratio);
+        $('#cursor').css("border-radius",radius*2.7*zoom*ratio);
     })
 
     $("#submit").click(function(){
@@ -211,7 +222,7 @@ function InitThis() {
         }
         workerBusy = true;
         img = document.getElementById("canvasimg");
-        var mask = ctx.getImageData(0, 0, img.naturalWidth, img.naturalHeight);
+        var mask = ctx.getImageData(0, 0, pSize[0], pSize[1]);
         worker.postMessage(["segment", mask]);
         /*
         canvas.toBlob(function(blob){
@@ -231,13 +242,15 @@ function InitThis() {
 }
 
 function Draw(x, y, isDown) {
+    var sx = canvas.width/parseInt(canvas.style.width);
+    var sy = canvas.height/parseInt(canvas.style.height);
     if (isDown && !eraser) {
         ctx.beginPath();
         ctx.strokeStyle = color;
         ctx.lineWidth = lineWidth;
         ctx.lineJoin = "round";
-        ctx.moveTo(lastX/(factor*ratio), lastY/(factor*ratio));
-        ctx.lineTo(x/(factor*ratio), y/(factor*ratio));
+        ctx.moveTo(lastX*sx, lastY*sy);
+        ctx.lineTo(x*sx, y*sy);
         ctx.closePath();
         ctx.stroke();
     } else if (eraser) {
@@ -253,47 +266,47 @@ function Draw(x, y, isDown) {
                 interY += vectorY * percent ;
                 ctx.beginPath();
                 ctx.lineWidth = lineWidth;
-                ctx.arc(interX/(factor*ratio),interY/(factor*ratio),radius,0,Math.PI*2);
+                ctx.arc(interX*sx,interY*sy,radius,0,Math.PI*2);
                 ctx.fill();
                 ctx.stroke();
             }
         }
         ctx.beginPath();
         ctx.lineWidth = lineWidth;
-        ctx.arc(x/(factor*ratio),y/(factor*ratio),radius,0,Math.PI*2);
+        ctx.arc(x*sx,y*sy,radius,0,Math.PI*2);
         ctx.fill();
         ctx.stroke();
     }
     lastX = x; lastY = y;
 }
 
-function updateZoom(newFactor) {
-    if(newFactor <=1)
+function updateZoom(newzoom) {
+    if(newzoom <=1)
     {
         $('#canvasdiv').css("overflow","hidden");
     } else {
         $('#canvasdiv').css("overflow","auto");
     }
-    factor = newFactor;
+    zoom = newzoom;
 
-    canvasImg.style.width  = canvasImg.naturalWidth*newFactor*ratio + "px";
-    canvasImg.style.height = canvasImg.naturalHeight*newFactor*ratio + "px";
+    canvasImg.style.width  = canvasImg.naturalWidth*newzoom*ratio + "px";
+    canvasImg.style.height = canvasImg.naturalHeight*newzoom*ratio + "px";
     
-    canvas.style.width = canvasImg.naturalWidth*newFactor*ratio + "px";
-    canvas.style.height = canvasImg.naturalHeight*newFactor*ratio + "px";
+    canvas.style.width = canvasImg.naturalWidth*newzoom*ratio + "px";
+    canvas.style.height = canvasImg.naturalHeight*newzoom*ratio + "px";
 
     updateCursorSize();
 }
 
 function updateCursorSize(){
     if(!eraser) {
-        $('#cursor').css("width",lineWidth*factor*ratio);
-        $('#cursor').css("height",lineWidth*factor*ratio);
-        $('#cursor').css("border-radius",lineWidth*factor*ratio);
+        $('#cursor').css("width",lineWidth*zoom*ratio);
+        $('#cursor').css("height",lineWidth*zoom*ratio);
+        $('#cursor').css("border-radius",lineWidth*zoom*ratio);
     } else{
-        $('#cursor').css("width",radius*2.7*factor*ratio);
-        $('#cursor').css("height",radius*2.7*factor*ratio);
-        $('#cursor').css("border-radius",radius*2.7*factor*ratio);
+        $('#cursor').css("width",radius*2.7*zoom*ratio);
+        $('#cursor').css("height",radius*2.7*zoom*ratio);
+        $('#cursor').css("border-radius",radius*2.7*zoom*ratio);
     }
 }
 
