@@ -138,34 +138,35 @@ class Graphcut {
 
         return beta;
     }
-/*
-    drawWeights() {
-        var id = this.ctx.createImageData(this.width, this.height); // only do this once per page
-        var d  = id.data;                        // only do this once per page
 
-        for( var y = 0; y < this.width; y++ )
+    exportMask()
+    {
+        var mask = new ImageData(this.width, this.height);
+
+        for( var idx = 0; idx < this.height*this.width; idx++ )
         {
-            for( var x = 0; x < this.height; x++ )
-            {
-                var idx = (y*this.width + x);
-
-                d[idx*4]     = this.uprightW[idx];
-                d[idx*4+1]   = this.uprightW[idx];
-                d[idx*4+2]   = this.uprightW[idx];
-                d[idx*4+3]   = OPACITY_DRAW;
+            if( this.graph.inSourceSegment( idx ) ) {
+                mask.data[idx*4]     = 0;
+                mask.data[idx*4+1]   = 0;
+                mask.data[idx*4+2]   = 0;
             }
+            else
+            {
+                mask.data[idx*4]     = 255;
+                mask.data[idx*4+1]   = 255;
+                mask.data[idx*4+2]   = 255;
+            }
+            mask.data[idx*4+3]   = 255;
         }
-        this.ctx.putImageData( id, 0, 0 );     
+        //this.ctx.putImageData( imgData, 0, 0 );     
+        return mask;
     }
-*/
-
 
     drawMask()
     {
         var d  = this.mask.data;                        // only do this once per page
 
         for( var y = 0; y < this.height; y++ )
-        {
             for( var x = 0; x < this.width; x++ )
             {
                 var idx = (y*this.width + x);
@@ -186,11 +187,9 @@ class Graphcut {
                     d[idx*4+3]   = OPACITY_MASK;
                 }
             }
-        }
         //this.ctx.putImageData( imgData, 0, 0 );     
         return this.mask;
     }
-
 
     constructGraph() {
 
@@ -297,6 +296,14 @@ onmessage = function(e) {
             var mask = e.data[1];
             instance.segment(mask);
             postMessage(["segmented", instance.mask]);
+            busy = false;
+        break;
+        case "export" : 
+            busy = true;
+            console.log("[worker] export");
+            var mask = instance.exportMask();
+            console.log(mask.data);
+            postMessage(["export", mask]);
             busy = false;
         break;
     }

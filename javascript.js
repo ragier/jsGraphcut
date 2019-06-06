@@ -82,11 +82,16 @@ function InitThis() {
             case "initialized" : 
                 console.log("[worker] initialized")
             break;
+            case "exported" : 
+            console.log(e.data[1]);
+            console.log("[worker] exported")
+        break;
             case "segmented" : 
                 console.log("[worker] segmented")
                 var mask = e.data[1];
                 ctx.putImageData( mask, 0, 0 );
                 workerBusy = false;
+                worker.postMessage(["export"]);
             break;
         }
       }
