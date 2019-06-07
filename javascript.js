@@ -18,7 +18,7 @@ var zoom = 1; //zoom factor
 var lineWidth = 7;
 var radius = 15;
 
-var pLength = 50;
+var pLength = 400;
 var pSize = [undefined, undefined];
 
 function getImageData(img) {
@@ -134,15 +134,16 @@ function InitThis() {
     });
     
     $('#canvas').mousemove(function (e) {
+        var sx = canvas.width/parseInt(canvas.style.width);
         if (mousePressed) {
             Draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, true);
         }
         if(!eraser){
-            $('#cursor').css("left",e.pageX - $(this).offset().left - zoom*ratio*lineWidth/2);
-            $('#cursor').css("top",e.pageY - $(this).offset().top - zoom*ratio*lineWidth/2);
+            $('#cursor').css("left",e.pageX - $(this).offset().left - lineWidth*zoom/1.35);
+            $('#cursor').css("top",e.pageY - $(this).offset().top - lineWidth*zoom/1.35);
         } else {
-            $('#cursor').css("left",e.pageX - $(this).offset().left - zoom*ratio*radius*1.35);
-            $('#cursor').css("top",e.pageY - $(this).offset().top - zoom*ratio*radius*1.35);
+            $('#cursor').css("left",e.pageX - $(this).offset().left - radius*1.35/sx);
+            $('#cursor').css("top",e.pageY - $(this).offset().top - radius*1.35/sx);
         }
     });
 
@@ -177,10 +178,11 @@ function InitThis() {
                 break;
         }
 
+        var sx = canvas.width/parseInt(canvas.style.width);
         $('#cursor').css("border-color",color);
-        $('#cursor').css("width",lineWidth*zoom*ratio);
-        $('#cursor').css("height",lineWidth*zoom*ratio);
-        $('#cursor').css("border-radius",lineWidth*zoom*ratio);
+        $('#cursor').css("width",lineWidth*zoom/sx);
+        $('#cursor').css("height",lineWidth*zoom/sx);
+        $('#cursor').css("border-radius",lineWidth*zoom/sx);
     });
 
     $(".zoom-button").click(function(){
@@ -310,14 +312,15 @@ function updateZoom(newzoom) {
 }
 
 function updateCursorSize(){
+    var sx = canvas.width/parseInt(canvas.style.width);
     if(!eraser) {
-        $('#cursor').css("width",lineWidth*zoom*ratio);
-        $('#cursor').css("height",lineWidth*zoom*ratio);
-        $('#cursor').css("border-radius",lineWidth*zoom*ratio);
+        $('#cursor').css("width",lineWidth/sx);
+        $('#cursor').css("height",lineWidth/sx);
+        $('#cursor').css("border-radius",lineWidth/sx);
     } else{
-        $('#cursor').css("width",radius*2.7*zoom*ratio);
-        $('#cursor').css("height",radius*2.7*zoom*ratio);
-        $('#cursor').css("border-radius",radius*2.7*zoom*ratio);
+        $('#cursor').css("width",radius*2.7/sx);
+        $('#cursor').css("height",radius*2.7/sx);
+        $('#cursor').css("border-radius",radius*2.7/sx);
     }
 }
 
