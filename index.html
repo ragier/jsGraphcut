@@ -12,59 +12,16 @@
 <body id="body">
 	<!--<script src="gcgraph.js"></script>-->
 	<!--<script src="graphcut.js"></script>-->
-	<script src="javascript.js"></script>
+	<img id ="testImg" src="11.jpg" />
+	<script src="graphcut.js"></script>
 
-		<div id="top-buttons">
-			<div id="top-left">
-				<input type="button" class="btn btn-secondary" value="Bouton1">
-				<input type="button" class="btn btn-secondary" value="Bouton2">
-			</div>
-			<div id="top-right" class="btn-group btn-group-toggle" data-toggle="buttons">				
-				<label class="btn btn-secondary color-button active" id="background"> <input type="radio" class="color-button">Background</label>
-				
-				<label class="btn btn-secondary color-button" id="eraser"><input type="radio" class="color-button">Erase</label>
-				
-				<label class="btn btn-secondary color-button" id="foreground"> <input type="radio" class="color-button">Foreground</label>
-			</div>
-		</div>
-
-		<div id="size-select" class="btn-group btn-group-toggle" data-toggle="buttons">
-			<label id="size1" class="btn btn-secondary"> <input type="radio" class="color-button"><div class="size1"></div></label>
-			
-			<label id="size2" class="btn btn-secondary active"> <input type="radio" class="color-button"><div class="size2"></div></label>
-
-			<label id="size3" class="btn btn-secondary"> <input type="radio" class="color-button"><div class="size3"></div></label>
-		</div>
-
-		<div id="canvasdiv">
-			<div id="cursor" style="display:none;"></div>
-			<canvas id="canvas"></canvas>
-			<img id="canvasimg" src="11.jpg" />
-		</div>
-
-		<div id="bottom-buttons">
-			<div id="bottom-left" class="btn-group btn-group-toggle" data-toggle="buttons">
-					<label class="btn btn-secondary zoom-button active" id="zoom1"> <input type="radio">100%</label>
-				
-					<label class="btn btn-secondary zoom-button" id="zoom2"> <input type="radio">200%</label>
-					
-					<label class="btn btn-secondary zoom-button" id="zoom3"> <input type="radio">300%</label>
-			</div>
-			<div id="bottom-right">
-				<button class="btn btn-primary" id="submit">Envoyer</button>
-			</div>
-		</div>
-
-
-
-		<!-- >div id="buttons">
-			Line width : <select id="selWidth">
-				<option value="1" selected="selected">1</option>
-				<option value="3">3</option>
-				<option value="5">5</option>
-				<option value="7">7</option>
-				<option value="9">9</option>
-				<option value="11">11</option>
-			</select>
-		</div -->
+	<script>
+		$(function() {
+			new Graphcut($("#testImg")[0], "06314cf8-1993-42d7-8a88-88df63be6eae", function (e) {
+				console.log(e);
+			}, {
+				//...
+			});
+		});
+	</script>
 </body>

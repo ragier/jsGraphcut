@@ -1,0 +1,192 @@
+<style>
+  #whiteshop-modal .modal-content{
+  width: max-content;
+  }
+  #whiteshop-modal img{
+      width: 750px;
+  }
+  #whiteshop-top-buttons{
+      display: flex;
+      justify-content: space-between;
+  }
+  #whiteshop-modal .btn-group label{
+      border-radius: 0;
+  }
+  #whiteshop-modal .btn-group :first-child{
+      border-radius: .25rem 0rem 0rem .25rem;
+  }
+  #whiteshop-modal .btn-group :last-child{
+      border-radius: 0rem .25rem .25rem 0rem;
+  }
+  #whiteshop-modal .modal-footer{
+      display:flex;
+      justify-content: space-between;
+  }
+  #whiteshop-canvasdiv {
+      display: block;
+      position:relative;
+      overflow:hidden;
+  }
+  #whiteshop-canvasimg{
+      position:absolute;
+      left: 0;
+      top: 0;
+      z-index:0;
+  }
+  #whiteshop-canvasimg {
+      pointer-events: none;
+  }
+  #whiteshop-canvas {
+      opacity: 0.6;
+      margin-left: none;
+      position:absolute;
+      top:0;
+      left:0;
+      z-index:1;
+  }
+  #whiteshop-cursor{
+      width:7px;
+      height:7px;
+      border-style:solid;
+      border-radius:7px;
+      border-width: 1px;
+      position:absolute;
+      pointer-events: none;
+      border-color: red;
+      z-index:2;
+  }
+  #whiteshop-canvas:hover{
+      cursor:none;
+  }
+  #whiteshop-size-select{
+      display:flex;
+      flex-direction: row;
+      align-items:center;
+      margin-top:1.5rem;
+      margin-bottom:.75rem;
+      align-self: end;
+  }
+  #whiteshop-size-select div{
+      background-color: black;
+      margin:auto;
+  }
+  #whiteshop-size-select label{
+      height:3rem;
+      display:flex;
+      align-items: center;
+      flex-grow: 0;
+  }
+  #whiteshop-size-select #whiteshop-circle1{
+      width:1.2rem;
+      height:1.2rem;
+      border-radius:1.2rem;
+  }
+  #whiteshop-size-select #whiteshop-circle2{
+      width:1.7rem;
+      height:1.7rem;
+      border-radius:1.7rem;
+  }
+  #whiteshop-size-select #whiteshop-circle3{
+      width:2.2rem;
+      height:2.2rem;
+      border-radius:2.2rem;
+  }
+  #whiteshop-modal .modal-body{
+      display: flex;
+      flex-direction: column;
+  }
+  #whiteshop-buttons-bottom-right{
+      position: absolute;
+      right: 2.35rem;
+  }
+  .whiteshop_maskImg{
+      display:none;
+  }
+  #whiteshop-dropdown{
+      position: absolute;
+      left: 50%;
+      top: 6.5rem;
+      transform: translate(-50%);
+      z-index: 3;
+  }
+  #whiteshop-dropdown .dropdown-toggle{
+      border-radius: 0rem .25rem .25rem 0rem;
+  }
+  #whiteshop-dropdown .dropdown-menu{
+      border-radius: .25rem;
+  }
+  #whiteshop-edit{
+      margin-bottom: 2rem;
+  }
+</style>
+
+<div class="modal fade" id="whiteshop-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="whiteshop-top-buttons">
+              <div id="whiteshop-buttons-top-left">
+              <button id="whiteshop-edit" type="button" class="btn btn-primary">Edit</button>
+              <button id="whiteshop-previewchanges" type="button" class="btn btn-primary" style="display:none">Aperçu</button>
+              </div>
+              <div id="whiteshop-buttons-top-right" class="btn-group btn-group-toggle" data-toggle="buttons" style="display:none">				
+                <label class="btn btn-secondary whiteshop-color-button active" id="whiteshop-background"> <input type="radio" class="color-button">Background</label>
+                
+                <label class="btn btn-secondary whiteshop-color-button" id="whiteshop-eraser"><input type="radio" class="color-button">Erase</label>
+                
+                <label class="btn btn-secondary whiteshop-color-button" id="whiteshop-foreground"> <input type="radio" class="color-button">Foreground</label>
+              </div>
+            </div>
+              
+              <div id="whiteshop-dropdown" class="btn-group" style="display:none">
+                <button id="whiteshop-run" type="button" class="btn btn-success">Détourer</button>
+                <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <div class="dropdown-menu">
+                  <a class="dropdown-item" href="#"><input type="checkbox"> Auto</a>
+                </div>
+              </div>
+              
+              <div id="whiteshop-size-select" class="btn-group btn-group-toggle" data-toggle="buttons" style="display:none">
+                <label id="whiteshop-size1" class="btn btn-secondary"> <input type="radio"><div id="whiteshop-circle1"></div></label>
+                
+                <label id="whiteshop-size2" class="btn btn-secondary active"> <input type="radio"><div id="whiteshop-circle2"></div></label>
+
+                <label id="whiteshop-size3" class="btn btn-secondary"> <input type="radio"><div id="whiteshop-circle3"></div></label>
+              </div>
+
+            <div id="whiteshop-canvasdiv"  style="display:none;">
+              <div id="whiteshop-cursor" style="display:none;"></div>
+              <canvas id="whiteshop-canvas" style="display:none;"></canvas>
+              <img id="whiteshop-canvasimg" src="">
+            </div>
+
+            <img id="whiteshop-preview-img" src="">
+            
+          </div>
+          <div class="modal-footer">
+            <div id="whiteshop-buttons-bottom-left" class="btn-group btn-group-toggle" data-toggle="buttons" style="display:none">
+              <label class="btn btn-secondary whiteshop-zoom-button active" id="whiteshop-zoom1"> <input type="radio">100%</label>
+            
+              <label class="btn btn-secondary whiteshop-zoom-button" id="whiteshop-zoom2"> <input type="radio">200%</label>
+              
+              <label class="btn btn-secondary whiteshop-zoom-button" id="whiteshop-zoom3"> <input type="radio">300%</label>
+            </div>
+            <div id="whiteshop-buttons-bottom-right">
+              <button id="whiteshop-exit-modal" type="button" class="btn btn-primary" data-dismiss="modal">Fermer</button>
+              <div id="whiteshop-buttons-cancelvalidate" style="display:none">
+                <button type="button" id="whiteshop-button-cancel" class="btn btn-secondary btn-danger">Cancel</button>
+                <button type="button" id="whiteshop-button-valid" class="btn btn-secondary btn-success">Valider</button>
+              </div>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>

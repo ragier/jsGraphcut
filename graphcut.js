@@ -1,310 +1,539 @@
-const OPACITY_DRAW = 255;
-const OPACITY_MASK = 72;
+"use strict";
+/*
+var mousePressed = false;
+var lastX, lastY;
+var ctx;
+window.onload = InitThis;
 
 
-class Graphcut {
-    constructor(img, prior) {
-        this.img = img.data;
-        this.gamma = 50;
-        this.prior = prior.data; //obj = 255, background = 0
-  
-        this.height = img.height;
-        this.width = img.width;
+
+var worker;
+var workerBusy = false;
+//var graphcut;
+
+var zoom = 1; //zoom factor
+var radius = 15;
+*/
+
+function Graphcut(img, apiKey, callback, options) {
+    this.img = img;
+
+    this.apiKey = apiKey;
+    this.callback = callback;
+
+    this.hash = options.hash;
+
+    this.zoom = 1;
+
+    this.color = "red";
+    this.erase = false;
+    this.radius = 15;
+
+    this.mask;
+
+    this.pLength = options.pLength || 400;
+
+    this.modalTpl = options.modalTpl || "graphcutModal.html";
+    this.workerJS = options.workerJS || "worker.js";
+
+    this.worker = new Worker(this.workerJS);
+
+    var xhr = new XMLHttpRequest();
+    var formData = new FormData();
+    xhr.open('GET', this.modalTpl, true);
+    var that = this;
+    xhr.onload = function(e) {
+      if (this.status == 200) {
+        $(document.body).append(xhr.response);
+        $("#whiteshop-modal").modal();
+        $('#whiteshop-modal').on('hidden.bs.modal', function (e) {
+            $("#whiteshop-modal").remove();
+        })
+        that.init();
+      } else {
+          console.log(e);
       }
+    };
+    
+    xhr.send(formData);
 
-    calcWeights() {
-        console.log("calcWeight : ", this.width * this.height);
-        var pixels = this.img;
-        console.log("pixels", pixels);
-
-        const beta = this.calcBeta();
-        console.log("Beta : ", beta);
-
-        const gammaDivSqrt2 = this.gamma / Math.sqrt(2.0);
-        this.leftW    = new Float32Array(this.width * this.height);
-        this.upleftW  = new Float32Array(this.width * this.height);
-        this.upW      = new Float32Array(this.width * this.height);
-        this.uprightW = new Float32Array(this.width * this.height);
+}
 
 
-        for( var y = 0; y < this.width; y++ )
-        {
-            for( var x = 0; x < this.height; x++ )
-            {
-                var pr = pixels[(y*this.width + x)*4 + 1];
-                var pg = pixels[(y*this.width + x)*4 + 2];
-                var pb = pixels[(y*this.width + x)*4 + 0];
-                if( x-1>=0 ) // left
+Graphcut.prototype.init = function () {
+
+
+    this.canvasImg = document.getElementById("whiteshop-canvasimg");
+    this.canvasImg.src = this.img.src;
+    this.previewImg = document.getElementById("whiteshop-preview-img");
+    this.previewImg.src = this.img.src;
+
+    this.canvasDiv = document.getElementById("whiteshop-canvasdiv");
+    this.canvas = document.getElementById('whiteshop-canvas');
+    this.ctx = this.canvas.getContext("2d");
+    var lastX, lastY;
+
+        
+    var aspectRatio = this.canvasImg.naturalHeight / this.canvasImg.naturalWidth;
+    this.pLength = Math.min(this.pLength, this.canvasImg.naturalHeight, this.canvasImg.naturalWidth)
+    this.pSize = [this.pLength, this.pLength * aspectRatio];
+    this.ratio = 650/this.canvasImg.naturalWidth;
+
+    this.canvas.width  = this.pSize[0];
+    this.canvas.height = this.pSize[1];
+
+    this.canvas.style.width  = this.canvasImg.naturalWidth *  this.zoom*this.ratio + "px";
+    this.canvas.style.height = this.canvasImg.naturalHeight * this.zoom*this.ratio + "px";
+
+    this.imgData = this.getImageData(this.canvasImg);
+
+
+    var workerBusy = true;
+    this.worker.onmessage = function(e) {
+        var action = e.data[0];
+
+        switch(action){
+            case "initialized" : 
+                console.log("[worker] initialized")
+                workerBusy = false;
+            break;
+                case "exported" : 
+                var tmpCanvas = document.createElement("canvas");
+                tmpCanvas.getContext('2d').putImageData( e.data[1], 0, 0 );
+                tmpCanvas.toBlob(function (blob) {
+                    console.log(blob);
+                    that.sendMat.bind(that)(blob);
+                });
+
+                console.log("[worker] exported")
+            break;
+            case "segmented" : 
+                console.log("[worker] segmented")
+                var mask = e.data[1];
+                that.ctx.putImageData( mask, 0, 0 );
+                workerBusy = false;
+                //worker.postMessage(["export"]);
+            break;
+        }
+      }
+    //}
+
+    /*
+    getRemoteImageData("mask.jpg", function (prior) {
+        console.log(prior);
+    });
+    */
+   var that = this;
+   function next(img) {
+       var formData = new FormData();
+       formData.append("synchrone","true");
+       formData.append("task", "mask");
+       formData.append("image", img);
+       var xhr = new XMLHttpRequest();
+       xhr.open('POST', "http://137.74.115.158/api/jobs", true);
+       xhr.responseType = 'arraybuffer';
+       xhr.onload = function(e) {
+         if (this.status == 200) {
+           var blob = this.response;
+           var str = btoa(String.fromCharCode.apply(null, new Uint8Array(blob)));
+           
+           var prior = new Image();
+
+           prior.onload = function () {
+                var data = that.getImageData(prior);
+                console.log(data);
+                that.worker.postMessage(["init",  that.imgData, data]);
+           };
+
+           prior.src = "data:image/jpg;base64,"+str;
+
+         }
+       };
+       
+       xhr.setRequestHeader ("Authorization", "Api-Key " + that.apiKey);
+       xhr.send(formData);
+   }
+
+   if (this.hash) {
+       next(this.hash);
+   } else {
+       this.getBlob(this.img, next);
+   }
+
+
+
+    this.lineWidth = 7;
+
+    
+    this.canvasImg.style.width  = this.canvasImg.naturalWidth*this.zoom*this.ratio + "px";
+    this.canvasImg.style.height = this.canvasImg.naturalHeight*this.zoom*this.ratio + "px";
+
+    this.canvasImg.style.width  = this.canvasImg.naturalWidth*this.zoom*this.ratio + "px";
+    this.canvasImg.style.height = this.canvasImg.naturalHeight*this.zoom*this.ratio + "px";
+
+    this.previewImg.style.width  = this.canvasImg.naturalWidth*this.zoom*this.ratio + "px";
+    this.previewImg.style.height = this.canvasImg.naturalHeight*this.zoom*this.ratio + "px";
+
+    this.canvasDiv.style.width  = 650 + 10 + "px";
+    this.canvasDiv.style.height = this.canvasImg.naturalHeight*this.ratio + "px";
+    
+    $('#whiteshop-cursor').css("width", this.lineWidth*this.zoom*this.ratio);
+    $('#whiteshop-cursor').css("height",this.lineWidth*this.zoom*this.ratio);
+    $('#whiteshop-cursor').css("border-radius",this.lineWidth*this.zoom*this.ratio);
+    
+
+
+    function draw(x, y, isAlreadyDown) {
+        var sx = that.canvas.width/parseInt(that.canvas.style.width);
+        var sy = that.canvas.height/parseInt(that.canvas.style.height);
+        if (isAlreadyDown && !that.eraser) {
+            that.ctx.beginPath();
+            that.ctx.strokeStyle = that.color;
+            that.ctx.lineWidth = that.lineWidth;
+            that.ctx.lineJoin = "round";
+            that.ctx.moveTo(lastX*sx, lastY*sy);
+            that.ctx.lineTo(x*sx, y*sy);
+            that.ctx.closePath();
+            that.ctx.stroke();
+        } else if (that.eraser) {
+            if(Math.abs(x-lastX) + Math.abs(y-lastY) > that.radius){
+                var interX = lastX;
+                var interY = lastY;
+                var vectorX = x - lastX;
+                var vectorY = y - lastY;
+                var percent = (that.radius/4)/(Math.abs(x-lastX) + Math.abs(y-lastY));
+                while(Math.abs(x-interX) + Math.abs(y-interY) > that.radius)
                 {
-                    var idx = (y*this.width + x-1)*4;
-                    var sr = pixels[idx + 1] - pr;
-                    var sg = pixels[idx + 2] - pg;
-                    var sb = pixels[idx + 0] - pb;
-                    
-                    this.leftW[y*this.width+x] = this.gamma * Math.exp( -beta*(sr*sr + sg*sg + sb*sb) );
-                }
-
-                if( x-1>=0 && y-1>=0 ) // upleft
-                {
-                    var idx = ((y-1)*this.width + x-1)*4;
-                    var sr = pixels[idx + 1] - pr;
-                    var sg = pixels[idx + 2] - pg;
-                    var sb = pixels[idx + 0] - pb;
-                    
-                    this.upleftW[y*this.width+x] = gammaDivSqrt2 * Math.exp( -beta*(sr*sr + sg*sg + sb*sb) );
-                }
-                
-                if( y-1>=0 ) // up
-                {
-                    var idx = ((y-1)*this.width + x)*4;
-                    var sr = pixels[idx + 1] - pr;
-                    var sg = pixels[idx + 2] - pg;
-                    var sb = pixels[idx + 0] - pb;
-                    
-                    this.upW[y*this.width+x] = this.gamma * Math.exp( -beta*(sr*sr + sg*sg + sb*sb) );
-                }
-                
-                if( x+1<this.width && y-1>=0 ) // upright
-                {
-                    var idx = ((y-1)*this.width + x+1 )*4;
-                    var sr = pixels[idx + 1] - pr;
-                    var sg = pixels[idx + 2] - pg;
-                    var sb = pixels[idx + 0] - pb;
-                    
-                    this.uprightW[y*this.width+x] = gammaDivSqrt2 * Math.exp( -beta*(sr*sr + sg*sg + sb*sb) );
+                    interX += vectorX * percent ;
+                    interY += vectorY * percent ;
+                    that.ctx.beginPath();
+                    that.ctx.lineWidth = that.lineWidth;
+                    that.ctx.arc(interX*sx,interY*sy,that.radius,0,Math.PI*2);
+                    that.ctx.fill();
+                    that.ctx.stroke();
                 }
             }
+            that.ctx.beginPath();
+            that.ctx.lineWidth = that.lineWidth;
+            that.ctx.arc(x*sx,y*sy,that.radius,0,Math.PI*2);
+            that.ctx.fill();
+            that.ctx.stroke();
         }
-
+        lastX = x; lastY = y;
     }
 
-    calcBeta()
+
+    var mousePressed = false;
+    $(this.canvas).mousedown(function (e) {
+        mousePressed = true;
+        lastX =  e.pageX - $(this).offset().left;
+        lastY = e.pageY - $(this).offset().top;
+        draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, false);
+    });
+    
+    $(this.canvas).mousemove(function (e) {
+        var sx = that.canvas.width/parseInt(that.canvas.style.width);
+        if (mousePressed) {
+            draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, true);
+        }
+        if(!that.eraser){
+            $('#whiteshop-cursor').css("left",e.pageX - $(this).offset().left - that.lineWidth*that.zoom/1.35);
+            $('#whiteshop-cursor').css("top",e.pageY - $(this).offset().top - that.lineWidth*that.zoom/1.35);
+        } else {
+            $('#whiteshop-cursor').css("left",e.pageX - $(this).offset().left - that.radius*1.35/sx);
+            $('#whiteshop-cursor').css("top",e.pageY - $(this).offset().top - that.radius*1.35/sx);
+        }
+    });
+
+    $(this.canvas).mouseup(function (e) {
+        mousePressed = false;
+        lastX = null;
+        lastY = null;
+    });
+    
+    $(this.canvas).mouseleave(function (e) {
+        mousePressed = false;
+        $('#whiteshop-cursor').hide();
+    });
+
+    $(this.canvas).mouseenter(function (e) {
+        $('#whiteshop-cursor').show();
+    });
+
+    $(".whiteshop-color-button").click(function(){
+        that.ctx.globalCompositeOperation = "source-over";
+        $('#cursor').css("border-style","solid");
+        that.eraser = false;
+        switch($(this).attr("id")){
+            case "whiteshop-background" : 
+            that.color = "red";
+                break;
+            case "whiteshop-foreground" : 
+            that.color = "green";
+                break;
+            case "whiteshop-eraser" :
+            that.color = "white";
+                break;
+        }
+
+        $('whiteshop-#cursor').css("border-color",that.color);
+        that.updateCursorSize();
+    });
+
+    $(".whiteshop-zoom-button").click(function(){
+        switch($(this).attr("id")){
+            case "whiteshop-zoom1" :
+            that.updateZoom.bind(that)(1);
+                break;
+            case "whiteshop-zoom2" :
+            that.updateZoom.bind(that)(2);
+                break;
+            case "whiteshop-zoom3" :
+            that.updateZoom.bind(that)(3);
+                break;
+        }
+    });
+
+    $("#whiteshop-size-select label").click(function(){
+        switch($(this).attr("id")){
+            case "whiteshop-size1" : 
+            that.lineWidth = 7;
+            that.radius = 7;
+                break;
+            case "whiteshop-size2" : 
+            that.lineWidth = 11;
+            that.radius = 11;
+                break;
+            case "whiteshop-size3" :
+            that.lineWidth = 15;
+            that.radius = 15;
+                break;
+        }
+        that.updateCursorSize();
+    });
+
+    $("#whiteshop-eraser").click(function(){
+        that.eraser=true;
+        that.ctx.globalCompositeOperation = "destination-out";
+        
+        var sx = that.canvas.width/parseInt(that.canvas.style.width);
+        var sy = that.canvas.height/parseInt(that.canvas.style.height);
+        $('#whiteshop-cursor').css("border-style","dashed");
+        $('#whiteshop-cursor').css("border-color","white");
+        that.updateCursorSize();
+    });
+
+    $("#whiteshop-run").click(function(){
+        if (workerBusy) {
+            console.log("Worker already busy");
+            return;
+        }
+        workerBusy = true;
+        var mask = that.ctx.getImageData(0, 0, that.pSize[0], that.pSize[1]);
+        that.worker.postMessage(["segment", mask]);
+    });
+
+    $("#whiteshop-edit").click(function(){
+        $("#whiteshop-canvasdiv").show();
+        $("#whiteshop-previewchanges").show();
+        $("#whiteshop-dropdown").show();
+        $("#whiteshop-buttons-bottom-left").show();
+        $("#whiteshop-size-select").show();
+        $("#whiteshop-buttons-top-right").show();
+        $("#whiteshop-canvas").show();
+        $("#whiteshop-buttons-cancelvalidate").show();
+        $("#whiteshop-exit-modal").hide();
+        $("#whiteshop-edit").hide();
+        $("#whiteshop-modal .close").hide();
+        $("#whiteshop-preview-img").hide();
+        
+        $("#whiteshop-background").click();
+        //$("#whiteshop-zoom1").click();
+    });
+    
+    $("#whiteshop-previewchanges").click(function(){
+        $("#whiteshop-canvasdiv").hide();
+        $("#whiteshop-previewchanges").hide();
+        $("#whiteshop-dropdown").hide();
+        $("#whiteshop-buttons-bottom-left").hide();
+        $("#whiteshop-size-select").hide();
+        $("#whiteshop-buttons-top-right").hide();
+        $("#whiteshop-canvas").hide();
+        $("#whiteshop-edit").show();
+        $("#whiteshop-preview-img").show();
+        
+        $("#whiteshop-zoom1").click();
+        that.worker.postMessage(["export"]);
+    });
+
+    
+    $("#whiteshop-button-cancel").click(function(){
+        $("[data-dismiss=modal]").trigger({ type: "click" });
+        that.callback();
+    });
+
+    $("#whiteshop-button-valid").click(function(){
+        if ($("#whiteshop-canvasdiv:visible").length) {
+            $("#whiteshop-previewchanges").click();
+        }
+        else {
+            $("[data-dismiss=modal]").trigger({ type: "click" });
+            //$("#whiteshop-modal").modal('hide');
+            that.callback(that.jobId);
+        }
+
+
+    });
+}
+
+
+Graphcut.prototype.getImageData = function (img) {
+    var tmpCanvas = document.createElement("canvas");
+
+    tmpCanvas.width  = this.pSize[0];
+    tmpCanvas.height = this.pSize[1];
+
+    var tmpCtx = tmpCanvas.getContext("2d");
+    tmpCtx.drawImage(img, 0, 0, this.pSize[0], this.pSize[1]);
+
+    var imgData = tmpCtx.getImageData(0, 0, this.pSize[0], this.pSize[1]);
+    return imgData;
+}
+/*
+Graphcut.prototype.getRemoteImageData = function(url, cb) {
+    var img = new Image();
+    img.onload = function(){
+        var data = getImageData(img);
+        cb(data);
+    };
+
+    img.src= url;
+}*/
+
+
+Graphcut.prototype.updateZoom = function(newzoom) {
+    console.log(this)
+    if(newzoom <=1)
     {
-        var pixels = this.img;
-        console.log(pixels);
-        var beta = 0;
-        for( var y = 0; y < this.width; y++ )
-        {
-            for( var x = 0; x < this.height; x++ )
-            {
-                var pr = pixels[(y*this.width + x)*4 + 1];
-                var pg = pixels[(y*this.width + x)*4 + 2];
-                var pb = pixels[(y*this.width + x)*4 + 0];
-
-                
-                if( x-1>=0 ) // left
-                {
-                    var idx = (y*this.width + x-1)*4;
-                    var sr = pixels[idx + 1] - pr;
-                    var sg = pixels[idx + 2] - pg;
-                    var sb = pixels[idx + 0] - pb;
-                    
-                    beta += (sr*sr + sg*sg + sb*sb);
-                }
-
-                if( x-1>=0 && y-1>=0 ) // upleft
-                {
-                    var idx = ((y-1)*this.width + x-1)*4;
-                    var sr = pixels[idx + 1] - pr;
-                    var sg = pixels[idx + 2] - pg;
-                    var sb = pixels[idx + 0] - pb;
-                    
-                    beta += (sr*sr + sg*sg + sb*sb);
-                }
-                
-                if( y-1>=0 ) // up
-                {
-                    var idx = ((y-1)*this.width + x)*4;
-                    var sr = pixels[idx + 1] - pr;
-                    var sg = pixels[idx + 2] - pg;
-                    var sb = pixels[idx + 0] - pb;
-                    
-                    beta += (sr*sr + sg*sg + sb*sb);
-                }
-                
-                if( x+1<this.width && y-1>=0 ) // upright
-                {
-                    var idx = ((y-1)*this.width + x+1 )*4;
-                    var sr = pixels[idx + 1] - pr;
-                    var sg = pixels[idx + 2] - pg;
-                    var sb = pixels[idx + 0] - pb;
-                    
-                    beta += (sr*sr + sg*sg + sb*sb);
-                }
-            }
-        }
-
-        beta = 1.0 / (2 * beta/(4*this.width*this.height - 3*this.width - 3*this.height + 2) );
-
-        return beta;
+        $(this.canvasDiv).css("overflow","hidden");
+    } else {
+        $(this.canvasDiv).css("overflow","auto");
     }
+    this.zoom = newzoom;
 
-    exportMask()
-    {
-        var mask = new ImageData(this.width, this.height);
+    this.canvasImg.style.width  = this.canvasImg.naturalWidth*newzoom*this.ratio + "px";
+    this.canvasImg.style.height = this.canvasImg.naturalHeight*newzoom*this.ratio + "px";
+    
+    this.canvas.style.width = this.canvasImg.naturalWidth*newzoom*this.ratio + "px";
+    this.canvas.style.height = this.canvasImg.naturalHeight*newzoom*this.ratio + "px";
 
-        for( var idx = 0; idx < this.height*this.width; idx++ )
-        {
-            if( this.graph.inSourceSegment( idx ) ) {
-                mask.data[idx*4]     = 0;
-                mask.data[idx*4+1]   = 0;
-                mask.data[idx*4+2]   = 0;
-            }
-            else
-            {
-                mask.data[idx*4]     = 255;
-                mask.data[idx*4+1]   = 255;
-                mask.data[idx*4+2]   = 255;
-            }
-            mask.data[idx*4+3]   = 255;
-        }
-        //this.ctx.putImageData( imgData, 0, 0 );     
-        return mask;
+    this.updateCursorSize();
+}
+
+Graphcut.prototype.updateCursorSize = function(){
+    var sx = this.canvas.width/parseInt(this.canvas.style.width);
+    if(!this.eraser) {
+        $('#whiteshop-cursor').css("width",this.lineWidth/sx);
+        $('#whiteshop-cursor').css("height",this.lineWidth/sx);
+        $('#whiteshop-cursor').css("border-radius",this.lineWidth/sx);
+    } else{
+        $('#whiteshop-cursor').css("width",this.radius*2.7/sx);
+        $('#whiteshop-cursor').css("height",this.radius*2.7/sx);
+        $('#whiteshop-cursor').css("border-radius",this.radius*2.7/sx);
     }
+}
 
-    drawMask()
-    {
-        var d  = this.mask.data;                        // only do this once per page
+Graphcut.prototype.clearArea = function() {
+    // Use the identity matrix while clearing the canvas
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+}
 
-        for( var y = 0; y < this.height; y++ )
-            for( var x = 0; x < this.width; x++ )
-            {
-                var idx = (y*this.width + x);
+Graphcut.prototype.sendMat = function(maskBlob, cb) {
+    var that = this;
+    function next(img) {
+        var formData = new FormData();
+        formData.append("synchrone","true");
+        formData.append("task", "matting");
+        formData.append("image", img);
+        formData.append("mask", maskBlob);
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', "http://137.74.115.158/api/jobs", true);
+        xhr.responseType = 'arraybuffer';
 
-                if (d[idx*4+3] == OPACITY_DRAW) continue;
+        xhr.onload = function(e) {
+          if (this.status == 200) {
+            var blob = this.response;
+            var str = btoa(String.fromCharCode.apply(null, new Uint8Array(blob)));
+            console.log(xhr.getAllResponseHeaders());
+            document.getElementById("whiteshop-preview-img").src = "data:image/jpg;base64,"+str;
+            // Get the raw header string
+            var headers = xhr.getAllResponseHeaders();
 
-                if( this.graph.inSourceSegment( idx ) ) {
-                    d[idx*4]     = 255;
-                    d[idx*4+1]   = 0;
-                    d[idx*4+2]   = 0;
-                    d[idx*4+3]   = OPACITY_MASK;
-                }
-                else
-                {
-                    d[idx*4]     = 0;
-                    d[idx*4+1]   = 255;
-                    d[idx*4+2]   = 0;
-                    d[idx*4+3]   = OPACITY_MASK;
-                }
-            }
-        //this.ctx.putImageData( imgData, 0, 0 );     
-        return this.mask;
+            // Convert the header string into an array
+            // of individual headers
+            var arr = headers.trim().split(/[\r\n]+/);
+        
+            // Create a map of header names to values
+            var headerMap = {};
+            arr.forEach(function (line) {
+                var parts = line.split(': ');
+                var header = parts.shift();
+                var value = parts.join(': ');
+                headerMap[header] = value;
+            });
+
+            that.jobId = headerMap["x-api-job-id"];
+          }
+        };
+
+        xhr.setRequestHeader ("Authorization", "Api-Key " + that.apiKey);
+        xhr.send(formData);
     }
-
-    constructGraph() {
-
-        this.graph = new GCGraph();
-
-        var lambda = this.gamma*9; //50*9
-
-        //var imgData = this.ctx.getImageData(0, 0, this.width, this.height);
-        //var mask = imgData.data;
-        console.log("mask : ", this.mask);
-        for( var y = 0; y < this.height; y++ )
-        {
-            for( var x = 0; x < this.width; x++)
-            {
-                // add node
-                var vtxIdx = this.graph.addVtx();
-
-                var idx= y*this.width+x;
-                
-                //var proba = this.mask[idx*4] / 255.0;
-
-                // set t-weights from proba map
-                var fromSource = 100;
-                var toSink     = 100;
-
-                //red for source = foreground
-                if (this.mask && this.mask.data[idx*4] >0 && this.mask.data[idx*4+3] == 255) {
-                    fromSource = lambda;
-                    toSink = 0;
-                } //background
-                else if (this.mask && this.mask.data[idx*4+1] >0 && this.mask.data[idx*4+3] == 255) {
-                    fromSource = 0;
-                    toSink = lambda;
-                }
-                else {
-                    fromSource = -Math.log(this.prior[idx*4]/256) * 0.1;
-                    toSink = -Math.log(1-this.prior[idx*4]/256) * 0.1;
-                }
-
-
-
-                this.graph.addTermWeights( vtxIdx, fromSource, toSink );
-
-                // set n-weights
-                if( x>0 )
-                {
-                    var w = this.leftW[idx];
-                    this.graph.addEdges( vtxIdx, vtxIdx-1, w, w );
-                }
-                if( x>0 && y>0 )
-                {
-                    var w = this.upleftW[idx];
-                    this.graph.addEdges( vtxIdx, vtxIdx-this.width-1, w, w );
-                }
-                if( y>0 )
-                {
-                    var w = this.upW[idx];
-                    this.graph.addEdges( vtxIdx, vtxIdx-this.width, w, w );
-                }
-                if( x<this.width-1 && y>0 )
-                {
-                    var w = this.uprightW[idx];
-                    this.graph.addEdges( vtxIdx, vtxIdx-this.width+1, w, w );
-                }
-            }
-        }
-    }
-
-    segment(mask) {
-        this.mask = mask;
-        console.log("construct graph");
-        this.constructGraph();
-
-        console.log("maxFlow");
-        console.log( this.graph.maxFlow() );
-        return this.drawMask();
+ 
+    if (this.hash) {
+        next(this.hash);
+    } else {
+        this.getBlob(this.img, next);
     }
 }
 
 
-var instance;
-importScripts('gcgraph.js');
-onmessage = function(e) {
-    var action = e.data[0];
 
-    switch(action){
-        case "init" : 
-            busy = true;
-            console.log("[worker] init");
-            var img = e.data[1];
-            var prior = e.data[2];
-            instance = new Graphcut(img, prior);
-            instance.calcWeights();
-            mask = new ImageData(img.width, img.height);
-            instance.segment(mask);
-            postMessage(["segmented", mask]);
 
-            postMessage(["initialized", ""]);
-            busy = false;
-        break;
-        case "segment" : 
-            busy = true;
-            console.log("[worker] segment");
-            var mask = e.data[1];
-            instance.segment(mask);
-            postMessage(["segmented", instance.mask]);
-            busy = false;
-        break;
-        case "export" : 
-            busy = true;
-            console.log("[worker] export");
-            var mask = instance.exportMask();
-            console.log(mask.data);
-            postMessage(["exported", mask]);
-            busy = false;
-        break;
+
+
+Graphcut.prototype.getBlob = function(img, cb) {
+    var request = new XMLHttpRequest();
+    request.responseType = "blob";
+    request.addEventListener("load", function(evt) {
+        cb(evt.target.response);
+    });
+    request.open("GET", $(img).attr("src"), true);
+    request.send();
+}
+
+
+
+/*
+$.ajax({
+    url: "http://137.74.115.158/api/presets",
+    type: "GET",
+    crossDomain: true,
+    data: {},
+    beforeSend: function (xhr) {
+        xhr.setRequestHeader ("Authorization", "Api-Key " + "06314cf8-1993-42d7-8a88-88df63be6eae");
+    },
+    success: function (response) {
+      console.log("Réponse API : ", response);
+    },
+    complete: function(e)
+    {
+        console.log(e);
     }
-    }
+  });
+
+  */
+
+
+  
