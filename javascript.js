@@ -180,9 +180,7 @@ function InitThis() {
 
         var sx = canvas.width/parseInt(canvas.style.width);
         $('#cursor').css("border-color",color);
-        $('#cursor').css("width",lineWidth*zoom/sx);
-        $('#cursor').css("height",lineWidth*zoom/sx);
-        $('#cursor').css("border-radius",lineWidth*zoom/sx);
+        updateCursorSize();
     });
 
     $(".zoom-button").click(function(){
@@ -222,9 +220,7 @@ function InitThis() {
         ctx.globalCompositeOperation = "destination-out";
         
         $('#cursor').css("border-style","dashed");
-        $('#cursor').css("width",radius*2.7*zoom*ratio);
-        $('#cursor').css("height",radius*2.7*zoom*ratio);
-        $('#cursor').css("border-radius",radius*2.7*zoom*ratio);
+        updateCursorSize();
     })
 
     $("#submit").click(function(){
