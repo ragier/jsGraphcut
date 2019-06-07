@@ -265,18 +265,21 @@ Graphcut.prototype.init = function () {
         $('#cursor').css("border-style","solid");
         that.eraser = false;
         switch($(this).attr("id")){
-            case "whiteshop-background" : 
+            case "whiteshop-background" :
+            $('#whiteshop-cursor').css("border-style","solid"); 
             that.color = "red";
                 break;
-            case "whiteshop-foreground" : 
+            case "whiteshop-foreground" :
+            $('#whiteshop-cursor').css("border-style","solid");
             that.color = "green";
                 break;
             case "whiteshop-eraser" :
+            $('#whiteshop-cursor').css("border-style","dashed");
             that.color = "white";
                 break;
         }
 
-        $('whiteshop-#cursor').css("border-color",that.color);
+        $('#whiteshop-cursor').css("border-color",that.color);
         that.updateCursorSize();
     });
 
@@ -318,7 +321,6 @@ Graphcut.prototype.init = function () {
         
         var sx = that.canvas.width/parseInt(that.canvas.style.width);
         var sy = that.canvas.height/parseInt(that.canvas.style.height);
-        $('#whiteshop-cursor').css("border-style","dashed");
         $('#whiteshop-cursor').css("border-color","white");
         that.updateCursorSize();
     });
