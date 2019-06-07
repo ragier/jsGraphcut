@@ -18,7 +18,7 @@ var zoom = 1; //zoom factor
 var lineWidth = 7;
 var radius = 15;
 
-var pLength = 400;
+var pLength = 50;
 var pSize = [undefined, undefined];
 
 function getImageData(img) {
@@ -84,6 +84,12 @@ function InitThis() {
             break;
             case "exported" : 
             console.log(e.data[1]);
+            var tmpCanvas = document.createElement("canvas");
+            tmpCanvas.getContext('2d').putImageData( e.data[1], 0, 0 );
+            tmpCanvas.toBlob(function (blob) {
+                console.log(blob);
+            });
+
             console.log("[worker] exported")
         break;
             case "segmented" : 

@@ -303,7 +303,7 @@ onmessage = function(e) {
             console.log("[worker] export");
             var mask = instance.exportMask();
             console.log(mask.data);
-            postMessage(["export", mask]);
+            postMessage(["exported", mask]);
             busy = false;
         break;
     }
