@@ -17,17 +17,17 @@ var radius = 15;
 
 function Graphcut(img, apiKey, callback, options) {
     this.img = img;
-
     this.apiKey = apiKey;
     this.callback = callback;
 
     this.hash = options.hash;
 
     this.zoom = 1;
-
     this.color = "red";
     this.erase = false;
-    this.radius = 15;
+    this.radius = 11;
+    this.lineWidth = 11;
+    this.hasDrawn = false;
 
     this.mask;
 
@@ -92,6 +92,9 @@ Graphcut.prototype.init = function () {
     this.worker.onmessage = function(e) {
         var action = e.data[0];
 
+        //Disable run buttons until new modifications
+        that.hasDrawn = false;
+
         switch(action){
             case "initialized" : 
                 console.log("[worker] initialized")
@@ -112,10 +115,14 @@ Graphcut.prototype.init = function () {
                 var mask = e.data[1];
                 that.ctx.putImageData( mask, 0, 0 );
                 workerBusy = false;
+                $("#whiteshop-previewchanges").attr("disabled",false);
+                $("#whiteshop-button-valid").attr("disabled",false);
+                $("#whiteshop-dropdown button").attr("disabled",false);
+                $("#whiteshop-modal").css("cursor","");
                 //worker.postMessage(["export"]);
             break;
         }
-      }
+    }
     //}
 
     /*
@@ -154,15 +161,11 @@ Graphcut.prototype.init = function () {
        xhr.send(formData);
    }
 
-   if (this.hash) {
-       next(this.hash);
-   } else {
-       this.getBlob(this.img, next);
-   }
-
-
-
-    this.lineWidth = 7;
+    if (this.hash) {
+        next(this.hash);
+    } else {
+        this.getBlob(this.img, next);
+    }
 
     
     this.canvasImg.style.width  = this.canvasImg.naturalWidth*this.zoom*this.ratio + "px";
@@ -229,6 +232,11 @@ Graphcut.prototype.init = function () {
         lastX =  e.pageX - $(this).offset().left;
         lastY = e.pageY - $(this).offset().top;
         draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, false);
+        if(!that.hasDrawn) {
+            that.hasDrawn = true;
+            $("#whiteshop-dropdown button").attr("disabled",false);
+            $("#whiteshop-previewchanges").attr("disabled","disabled");
+        }
     });
     
     $(this.canvas).mousemove(function (e) {
@@ -326,6 +334,12 @@ Graphcut.prototype.init = function () {
     });
 
     $("#whiteshop-run").click(function(){
+        //Disable buttons while processing
+        $("#whiteshop-dropdown button").attr("disabled","disabled");
+        $("#whiteshop-previewchanges").attr("disabled","disabled");
+        $("#whiteshop-button-valid").attr("disabled","disabled");
+        $("#whiteshop-modal").css("cursor","progress");
+        
         if (workerBusy) {
             console.log("Worker already busy");
             return;
@@ -363,6 +377,9 @@ Graphcut.prototype.init = function () {
         $("#whiteshop-canvas").hide();
         $("#whiteshop-edit").show();
         $("#whiteshop-preview-img").show();
+
+        //Need real path
+        $("#whiteshop-preview-img").attr("src","loading.gif");
         
         $("#whiteshop-zoom1").click();
         that.worker.postMessage(["export"]);

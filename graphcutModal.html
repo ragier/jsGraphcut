@@ -95,6 +95,9 @@
       display: flex;
       flex-direction: column;
   }
+  #whiteshop-modal .modal-footer{
+    margin-bottom: 1rem;
+  }
   #whiteshop-buttons-bottom-right{
       position: absolute;
       right: 2.35rem;
@@ -105,7 +108,7 @@
   #whiteshop-dropdown{
       position: absolute;
       left: 50%;
-      top: 6.5rem;
+      top: 5.5rem;
       transform: translate(-50%);
       z-index: 3;
   }
@@ -133,7 +136,7 @@
           <div id="whiteshop-top-buttons">
               <div id="whiteshop-buttons-top-left">
               <button id="whiteshop-edit" type="button" class="btn btn-primary">Edit</button>
-              <button id="whiteshop-previewchanges" type="button" class="btn btn-primary" style="display:none">Aperçu</button>
+              <button id="whiteshop-previewchanges" type="button" disabled="disabled" class="btn btn-primary" style="display:none">Aperçu</button>
               </div>
               <div id="whiteshop-buttons-top-right" class="btn-group btn-group-toggle" data-toggle="buttons" style="display:none">				
                 <label class="btn btn-secondary whiteshop-color-button active" id="whiteshop-background"> <input type="radio" class="color-button">Background</label>
@@ -145,8 +148,8 @@
             </div>
               
               <div id="whiteshop-dropdown" class="btn-group" style="display:none">
-                <button id="whiteshop-run" type="button" class="btn btn-success">Détourer</button>
-                <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <button id="whiteshop-run" type="button" disabled="disabled" class="btn btn-success">Détourer</button>
+                <button type="button" disabled="disabled" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   <span class="sr-only">Toggle Dropdown</span>
                 </button>
                 <div class="dropdown-menu">
@@ -183,7 +186,7 @@
               <button id="whiteshop-exit-modal" type="button" class="btn btn-primary" data-dismiss="modal">Fermer</button>
               <div id="whiteshop-buttons-cancelvalidate" style="display:none">
                 <button type="button" id="whiteshop-button-cancel" class="btn btn-secondary btn-danger">Cancel</button>
-                <button type="button" id="whiteshop-button-valid" class="btn btn-secondary btn-success">Valider</button>
+                <button type="button" disabled="disabled" id="whiteshop-button-valid" class="btn btn-secondary btn-success">Valider</button>
               </div>
             </div>
           </div>
