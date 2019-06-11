@@ -15,8 +15,9 @@ var zoom = 1; //zoom factor
 var radius = 15;
 */
 
-function Graphcut(img, apiKey, callback, options) {
+function Graphcut(img, imgPreview, apiKey, callback, options) {
     this.img = img;
+    this.imgPreview = imgPreview;
     this.apiKey = apiKey;
     this.callback = callback;
 
@@ -67,7 +68,7 @@ Graphcut.prototype.init = function () {
     this.canvasImg = document.getElementById("whiteshop-canvasimg");
     this.canvasImg.src = this.img.src;
     this.previewImg = document.getElementById("whiteshop-preview-img");
-    this.previewImg.src = this.img.src;
+    this.previewImg.src = this.imgPreview.src;
 
     this.canvasDiv = document.getElementById("whiteshop-canvasdiv");
     this.canvas = document.getElementById('whiteshop-canvas');
