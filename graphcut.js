@@ -33,7 +33,7 @@ function Graphcut(img, apiKey, callback, options) {
 
     this.pLength = options.pLength || 400;
 
-    this.directory = options.directory || "./";
+    this.loadingImgPath = options.loadingImgPath || "loading.gif";
     this.modalTpl = options.modalTpl || "graphcutModal.html";
     this.workerJS = options.workerJS || "worker.js";
 
@@ -381,7 +381,7 @@ Graphcut.prototype.init = function () {
         $("#whiteshop-preview-img").show();
 
         //Need real path
-        $("#whiteshop-preview-img").attr("src",that.directory+"loading.gif");
+        $("#whiteshop-preview-img").attr("src",that.loadingImgPath);
         
         $("#whiteshop-zoom1").click();
         that.worker.postMessage(["export"]);
