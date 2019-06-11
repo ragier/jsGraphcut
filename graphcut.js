@@ -178,7 +178,7 @@ Graphcut.prototype.init = function () {
     this.previewImg.style.width  = this.canvasImg.naturalWidth*this.zoom*this.ratio + "px";
     this.previewImg.style.height = this.canvasImg.naturalHeight*this.zoom*this.ratio + "px";
 
-    this.canvasDiv.style.width  = 650 + 10 + "px";
+    this.canvasDiv.style.width  = 650 + "px";
     this.canvasDiv.style.height = this.canvasImg.naturalHeight*this.ratio + "px";
     
     $('#whiteshop-cursor').css("width", this.lineWidth*this.zoom*this.ratio);
