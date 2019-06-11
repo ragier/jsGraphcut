@@ -33,6 +33,7 @@ function Graphcut(img, apiKey, callback, options) {
 
     this.pLength = options.pLength || 400;
 
+    this.directory = options.directory || "./";
     this.modalTpl = options.modalTpl || "graphcutModal.html";
     this.workerJS = options.workerJS || "worker.js";
 
@@ -236,6 +237,7 @@ Graphcut.prototype.init = function () {
             that.hasDrawn = true;
             $("#whiteshop-dropdown button").attr("disabled",false);
             $("#whiteshop-previewchanges").attr("disabled","disabled");
+            $("#whiteshop-button-valid").attr("disabled","disabled");
         }
     });
     
@@ -379,7 +381,7 @@ Graphcut.prototype.init = function () {
         $("#whiteshop-preview-img").show();
 
         //Need real path
-        $("#whiteshop-preview-img").attr("src","loading.gif");
+        $("#whiteshop-preview-img").attr("src",that.directory+"loading.gif");
         
         $("#whiteshop-zoom1").click();
         that.worker.postMessage(["export"]);
