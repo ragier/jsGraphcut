@@ -37,6 +37,7 @@ function Graphcut(img, imgPreview, apiKey, callback, options) {
     this.loadingImgPath = options.loadingImgPath || "loading.gif";
     this.modalTpl = options.modalTpl || "graphcutModal.html";
     this.workerJS = options.workerJS || "worker.js";
+    this.preset = options.preset || "default";
 
     this.worker = new Worker(this.workerJS);
 
@@ -138,6 +139,7 @@ Graphcut.prototype.init = function () {
         formData.append("synchrone","true");
         formData.append("task", "mask");
         formData.append("image", img);
+        formData.append("preset", that.preset);
         var xhr = new XMLHttpRequest();
         xhr.open('POST', "http://137.74.115.158/api/jobs", true);
         xhr.responseType = 'arraybuffer';
@@ -480,6 +482,7 @@ Graphcut.prototype.sendMat = function(maskBlob, cb) {
         formData.append("synchrone","true");
         formData.append("task", "matting");
         formData.append("image", img);
+        formData.append("preset", that.preset);
         formData.append("mask", maskBlob);
         var xhr = new XMLHttpRequest();
         xhr.open('POST', "http://137.74.115.158/api/jobs", true);
