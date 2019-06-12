@@ -1,127 +1,128 @@
 <style>
   #whiteshop-modal .modal-content{
-  width: max-content;
+    width: max-content;
   }
   #whiteshop-modal img{
-      width: 750px;
+    width: 750px;
   }
   #whiteshop-top-buttons{
-      display: flex;
-      justify-content: space-between;
+    display: flex;
+    justify-content: space-between;
   }
   #whiteshop-modal .btn-group label{
-      border-radius: 0;
+    border-radius: 0;
   }
   #whiteshop-modal .btn-group :first-child{
-      border-radius: .25rem 0rem 0rem .25rem;
+    border-radius: .25rem 0rem 0rem .25rem;
   }
   #whiteshop-modal .btn-group :last-child{
-      border-radius: 0rem .25rem .25rem 0rem;
-  }
-  #whiteshop-modal .modal-footer{
-      display:flex;
-      justify-content: space-between;
+    border-radius: 0rem .25rem .25rem 0rem;
   }
   #whiteshop-canvasdiv {
-      display: block;
-      position:relative;
-      overflow:hidden;
+    display: block;
+    position:relative;
+    overflow:hidden;
   }
   #whiteshop-canvasimg{
-      position:absolute;
-      left: 0;
-      top: 0;
-      z-index:0;
+    position:absolute;
+    left: 0;
+    top: 0;
+    z-index:0;
   }
   #whiteshop-canvasimg {
-      pointer-events: none;
+    pointer-events: none;
   }
   #whiteshop-canvas {
-      opacity: 0.6;
-      margin-left: none;
-      position:absolute;
-      top:0;
-      left:0;
-      z-index:1;
+    opacity: 0.6;
+    margin-left: none;
+    position:absolute;
+    top:0;
+    left:0;
+    z-index:1;
   }
   #whiteshop-cursor{
-      width:7px;
-      height:7px;
-      border-style:solid;
-      border-radius:7px;
-      border-width: 1px;
-      position:absolute;
-      pointer-events: none;
-      border-color: red;
-      z-index:2;
+    width:7px;
+    height:7px;
+    border-style:solid;
+    border-radius:7px;
+    border-width: 1px;
+    position:absolute;
+    pointer-events: none;
+    border-color: red;
+    z-index:2;
   }
   #whiteshop-canvas:hover{
-      cursor:none;
+    cursor:none;
   }
   #whiteshop-size-select{
-      display:flex;
-      flex-direction: row;
-      align-items:center;
-      margin-top:1.5rem;
-      margin-bottom:.75rem;
-      align-self: end;
+    display:flex;
+    flex-direction: row;
+    align-items:center;
+    margin-top:1.5rem;
+    margin-bottom:.75rem;
+    align-self: end;
   }
   #whiteshop-size-select div{
-      background-color: black;
-      margin:auto;
+    background-color: black;
+    margin:auto;
   }
   #whiteshop-size-select label{
-      height:3rem;
-      display:flex;
-      align-items: center;
-      flex-grow: 0;
+    height:3rem;
+    display:flex;
+    align-items: center;
+    flex-grow: 0;
   }
   #whiteshop-size-select #whiteshop-circle1{
-      width:1.2rem;
-      height:1.2rem;
-      border-radius:1.2rem;
+    width:1.2rem;
+    height:1.2rem;
+    border-radius:1.2rem;
   }
   #whiteshop-size-select #whiteshop-circle2{
-      width:1.7rem;
-      height:1.7rem;
-      border-radius:1.7rem;
+    width:1.7rem;
+    height:1.7rem;
+    border-radius:1.7rem;
   }
   #whiteshop-size-select #whiteshop-circle3{
-      width:2.2rem;
-      height:2.2rem;
-      border-radius:2.2rem;
+    width:2.2rem;
+    height:2.2rem;
+    border-radius:2.2rem;
   }
   #whiteshop-modal .modal-body{
-      display: flex;
-      flex-direction: column;
-      padding: 30px;
-  }
+    display: flex;
+    flex-direction: column;
+    padding: 30px;
+}
   #whiteshop-modal .modal-footer{
+    display:flex;
+    justify-content: space-between;
     margin-bottom: 1rem;
     padding: 30px;
   }
   #whiteshop-buttons-bottom-right{
-      position: absolute;
-      right: 2.35rem;
+    position: absolute;
+    right: 2.35rem;
+  }
+  #whiteshop-buttons-bottom-left{
+    position: absolute;
   }
   .whiteshop_maskImg{
-      display:none;
+    display:none;
   }
   #whiteshop-dropdown{
-      position: absolute;
-      left: 50%;
-      top: 5.5rem;
-      transform: translate(-50%);
-      z-index: 3;
+    position: absolute;
+    left: 50%;
+    top: 5.5rem;
+    transform: translate(-50%);
+    z-index: 3;
   }
   #whiteshop-dropdown .dropdown-toggle{
-      border-radius: 0rem .25rem .25rem 0rem;
+    border-radius: 0rem .25rem .25rem 0rem;
   }
   #whiteshop-dropdown .dropdown-menu{
-      border-radius: .25rem;
+    border-radius: .25rem;
   }
   #whiteshop-edit{
-      margin-bottom: 2rem;
+    margin-bottom: 2rem;
   }
 </style>
 
@@ -129,7 +130,7 @@
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+          <h5 class="modal-title" id="exampleModalLabel">Whiteshop</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
