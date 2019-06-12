@@ -87,7 +87,7 @@ Graphcut.prototype.init = function () {
     this.canvas.style.width  = this.canvasImg.naturalWidth *  this.zoom*this.ratio + "px";
     this.canvas.style.height = this.canvasImg.naturalHeight * this.zoom*this.ratio + "px";
 
-    this.imgData = this.getImageData(this.canvasImg);
+    this.imgData = this.getImageData(this.img);
 
 
     var workerBusy = true;
@@ -134,33 +134,35 @@ Graphcut.prototype.init = function () {
     */
    var that = this;
    function next(img) {
-       var formData = new FormData();
-       formData.append("synchrone","true");
-       formData.append("task", "mask");
-       formData.append("image", img);
-       var xhr = new XMLHttpRequest();
-       xhr.open('POST', "http://137.74.115.158/api/jobs", true);
-       xhr.responseType = 'arraybuffer';
-       xhr.onload = function(e) {
-         if (this.status == 200) {
-           var blob = this.response;
-           var str = btoa(String.fromCharCode.apply(null, new Uint8Array(blob)));
-           
-           var prior = new Image();
+        var formData = new FormData();
+        formData.append("synchrone","true");
+        formData.append("task", "mask");
+        formData.append("image", img);
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', "http://137.74.115.158/api/jobs", true);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = function(e) {
+            if (this.status == 200) {
+                var blob = this.response;
+                var str = btoa(String.fromCharCode.apply(null, new Uint8Array(blob)));
+                
+                var prior = new Image();
 
-           prior.onload = function () {
-                var data = that.getImageData(prior);
-                console.log(data);
-                that.worker.postMessage(["init",  that.imgData, data]);
-           };
+                prior.onload = function () {
+                    var data = that.getImageData(prior);
+                    console.log(data);
+                    that.worker.postMessage(["init",  that.imgData, data]);
+                };
 
-           prior.src = "data:image/jpg;base64,"+str;
+            prior.src = "data:image/jpg;base64,"+str;
 
-         }
-       };
-       
-       xhr.setRequestHeader ("Authorization", "Api-Key " + that.apiKey);
-       xhr.send(formData);
+            } else {
+                console.log("Error get prior",e);
+            }
+        };
+
+        xhr.setRequestHeader ("Authorization", "Api-Key " + that.apiKey);
+        xhr.send(formData);
    }
 
     if (this.hash) {
