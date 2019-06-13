@@ -23,7 +23,7 @@ function Graphcut(img, imgPreview, apiKey, callback, options) {
     this.modalTpl = options.modalTpl || "graphcutModal.html";
     this.workerJS = options.workerJS || "worker.js";
     this.preset = options.preset || "default";
-
+    
     if(!img.complete || !imgPreview.complete || img.naturalHeight === 0 || imgPreview.naturalHeight === 0) {
         //Erreur de chargement des images
         this.terminateGraphcut();        
@@ -367,7 +367,10 @@ Graphcut.prototype.init = function () {
         $("#whiteshop-edit").hide();
         $("#whiteshop-modal .close").hide();
         $("#whiteshop-preview-img").hide();
-        
+
+        if(workerBusy) {$("#whiteshop-modal").css("cursor","progress");}
+        console.log(workerBusy);
+
         $("#whiteshop-background").click();
         //$("#whiteshop-zoom1").click();
     });
@@ -540,8 +543,10 @@ Graphcut.prototype.getBlob = function(img, cb) {
 
 Graphcut.prototype.terminateGraphcut = function (){
     $("[data-dismiss=modal]").trigger({ type: "click" });
-    this.worker.terminate();
-    delete this;
+    if(this.worker != undefined)
+    {
+        this.worker.terminate();
+    }
 }
 
   
