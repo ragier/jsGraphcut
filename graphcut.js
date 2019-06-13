@@ -39,23 +39,34 @@ function Graphcut(img, imgPreview, apiKey, callback, options) {
     this.workerJS = options.workerJS || "worker.js";
     this.preset = options.preset || "default";
 
-    this.worker = new Worker(this.workerJS);
+    if(!img.complete || !imgPreview.complete || img.naturalHeight === 0 || imgPreview.naturalHeight === 0) {
+        //Erreur de chargement des images
+        this.terminateGraphcut();        
+    }
+    
+    try {
+        this.worker = new Worker(this.workerJS);
+    } catch (exception){
+        console.log("Coud not create worker "+this.workerJS+" Exception : "+exception);
+        this.terminateGraphcut();
+    }
 
     var xhr = new XMLHttpRequest();
     var formData = new FormData();
     xhr.open('GET', this.modalTpl, true);
     var that = this;
     xhr.onload = function(e) {
-      if (this.status == 200) {
+        if (this.status == 200) {
         $(document.body).append(xhr.response);
         $("#whiteshop-modal").modal();
         $('#whiteshop-modal').on('hidden.bs.modal', function (e) {
             $("#whiteshop-modal").remove();
         })
         that.init();
-      } else {
-          console.log(e);
-      }
+        } else {
+            console.log("Failed to open "+that.modalTpl+" Status : "+this.status);
+            that.terminateGraphcut();
+        }
     };
     
     xhr.send(formData);
@@ -159,7 +170,9 @@ Graphcut.prototype.init = function () {
             prior.src = "data:image/jpg;base64,"+str;
 
             } else {
-                console.log("Error get prior",e);
+                console.log("prior, xhr api/jobs status : ",this.status);
+                console.log("xhr progressEvent : ",e);
+                that.terminateGraphcut();
             }
         };
 
@@ -392,7 +405,6 @@ Graphcut.prototype.init = function () {
         that.worker.postMessage(["export"]);
     });
 
-    
     $("#whiteshop-button-cancel").click(function(){
         $("[data-dismiss=modal]").trigger({ type: "click" });
         that.callback();
@@ -489,7 +501,7 @@ Graphcut.prototype.sendMat = function(maskBlob, cb) {
         xhr.responseType = 'arraybuffer';
 
         xhr.onload = function(e) {
-          if (this.status == 200) {
+            if (this.status == 200) {
             var blob = this.response;
             var str = btoa(String.fromCharCode.apply(null, new Uint8Array(blob)));
             console.log(xhr.getAllResponseHeaders());
@@ -511,7 +523,11 @@ Graphcut.prototype.sendMat = function(maskBlob, cb) {
             });
 
             that.jobId = headerMap["x-api-job-id"];
-          }
+            } else {
+                console.log("sendMat, xhr api/jobs status : ",this.status);
+                console.log("xhr progressEvent : ",e);
+                that.terminateGraphcut();
+            }
         };
 
         xhr.setRequestHeader ("Authorization", "Api-Key " + that.apiKey);
@@ -529,7 +545,6 @@ Graphcut.prototype.sendMat = function(maskBlob, cb) {
 
 
 
-
 Graphcut.prototype.getBlob = function(img, cb) {
     var request = new XMLHttpRequest();
     request.responseType = "blob";
@@ -541,26 +556,10 @@ Graphcut.prototype.getBlob = function(img, cb) {
 }
 
 
-
-/*
-$.ajax({
-    url: "http://137.74.115.158/api/presets",
-    type: "GET",
-    crossDomain: true,
-    data: {},
-    beforeSend: function (xhr) {
-        xhr.setRequestHeader ("Authorization", "Api-Key " + "06314cf8-1993-42d7-8a88-88df63be6eae");
-    },
-    success: function (response) {
-      console.log("Réponse API : ", response);
-    },
-    complete: function(e)
-    {
-        console.log(e);
-    }
-  });
-
-  */
-
+Graphcut.prototype.terminateGraphcut = function (){
+    $("[data-dismiss=modal]").trigger({ type: "click" });
+    this.worker.terminate();
+    delete this;
+}
 
   
