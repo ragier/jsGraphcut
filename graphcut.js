@@ -1,58 +1,57 @@
 "use strict";
-/*
-var mousePressed = false;
-var lastX, lastY;
-var ctx;
-window.onload = InitThis;
 
-
-
-var worker;
-var workerBusy = false;
-//var graphcut;
-
-var zoom = 1; //zoom factor
-var radius = 15;
-*/
-
-function Graphcut(img, apiKey, callback, options) {
+function Graphcut(img, imgPreview, apiKey, callback, options) {
     this.img = img;
-
+    this.imgPreview = imgPreview;
     this.apiKey = apiKey;
     this.callback = callback;
 
     this.hash = options.hash;
 
     this.zoom = 1;
-
     this.color = "red";
     this.erase = false;
-    this.radius = 15;
+    this.radius = 11;
+    this.lineWidth = 11;
+    this.hasDrawn = false;
 
     this.mask;
 
     this.pLength = options.pLength || 400;
 
+    this.loadingImgPath = options.loadingImgPath || "loading.gif";
     this.modalTpl = options.modalTpl || "graphcutModal.html";
     this.workerJS = options.workerJS || "worker.js";
-
-    this.worker = new Worker(this.workerJS);
+    this.preset = options.preset || "default";
+    
+    if(!img.complete || !imgPreview.complete || img.naturalHeight === 0 || imgPreview.naturalHeight === 0) {
+        //Erreur de chargement des images
+        this.terminateGraphcut();        
+    }
+    
+    try {
+        this.worker = new Worker(this.workerJS);
+    } catch (exception){
+        console.log("Coud not create worker "+this.workerJS+" Exception : "+exception);
+        this.terminateGraphcut();
+    }
 
     var xhr = new XMLHttpRequest();
     var formData = new FormData();
     xhr.open('GET', this.modalTpl, true);
     var that = this;
     xhr.onload = function(e) {
-      if (this.status == 200) {
+        if (this.status == 200) {
         $(document.body).append(xhr.response);
         $("#whiteshop-modal").modal();
         $('#whiteshop-modal').on('hidden.bs.modal', function (e) {
             $("#whiteshop-modal").remove();
         })
         that.init();
-      } else {
-          console.log(e);
-      }
+        } else {
+            console.log("Failed to open "+that.modalTpl+" Status : "+this.status);
+            that.terminateGraphcut();
+        }
     };
     
     xhr.send(formData);
@@ -66,7 +65,7 @@ Graphcut.prototype.init = function () {
     this.canvasImg = document.getElementById("whiteshop-canvasimg");
     this.canvasImg.src = this.img.src;
     this.previewImg = document.getElementById("whiteshop-preview-img");
-    this.previewImg.src = this.img.src;
+    this.previewImg.src = this.imgPreview.src;
 
     this.canvasDiv = document.getElementById("whiteshop-canvasdiv");
     this.canvas = document.getElementById('whiteshop-canvas');
@@ -74,23 +73,26 @@ Graphcut.prototype.init = function () {
     var lastX, lastY;
 
         
-    var aspectRatio = this.canvasImg.naturalHeight / this.canvasImg.naturalWidth;
-    this.pLength = Math.min(this.pLength, this.canvasImg.naturalHeight, this.canvasImg.naturalWidth)
+    var aspectRatio = this.img.naturalHeight / this.img.naturalWidth;
+    this.pLength = Math.min(this.pLength, this.img.naturalHeight, this.img.naturalWidth)
     this.pSize = [this.pLength, this.pLength * aspectRatio];
-    this.ratio = 650/this.canvasImg.naturalWidth;
+    this.ratio = 650/this.img.naturalWidth;
 
     this.canvas.width  = this.pSize[0];
     this.canvas.height = this.pSize[1];
+    console.log(this.pSize);
+    this.canvas.style.width  = this.img.naturalWidth *  this.zoom*this.ratio + "px";
+    this.canvas.style.height = this.img.naturalHeight * this.zoom*this.ratio + "px";
 
-    this.canvas.style.width  = this.canvasImg.naturalWidth *  this.zoom*this.ratio + "px";
-    this.canvas.style.height = this.canvasImg.naturalHeight * this.zoom*this.ratio + "px";
-
-    this.imgData = this.getImageData(this.canvasImg);
+    this.imgData = this.getImageData(this.img);
 
 
     var workerBusy = true;
     this.worker.onmessage = function(e) {
         var action = e.data[0];
+
+        //Disable run buttons until new modifications
+        that.hasDrawn = false;
 
         switch(action){
             case "initialized" : 
@@ -112,10 +114,14 @@ Graphcut.prototype.init = function () {
                 var mask = e.data[1];
                 that.ctx.putImageData( mask, 0, 0 );
                 workerBusy = false;
+                $("#whiteshop-previewchanges").attr("disabled",false);
+                $("#whiteshop-button-valid").attr("disabled",false);
+                $("#whiteshop-dropdown button").attr("disabled",false);
+                $("#whiteshop-modal").css("cursor","");
                 //worker.postMessage(["export"]);
             break;
         }
-      }
+    }
     //}
 
     /*
@@ -125,57 +131,58 @@ Graphcut.prototype.init = function () {
     */
    var that = this;
    function next(img) {
-       var formData = new FormData();
-       formData.append("synchrone","true");
-       formData.append("task", "mask");
-       formData.append("image", img);
-       var xhr = new XMLHttpRequest();
-       xhr.open('POST', "http://137.74.115.158/api/jobs", true);
-       xhr.responseType = 'arraybuffer';
-       xhr.onload = function(e) {
-         if (this.status == 200) {
-           var blob = this.response;
-           var str = btoa(String.fromCharCode.apply(null, new Uint8Array(blob)));
-           
-           var prior = new Image();
+        var formData = new FormData();
+        formData.append("synchrone","true");
+        formData.append("task", "mask");
+        formData.append("image", img);
+        formData.append("preset", that.preset);
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', "http://137.74.115.158/api/jobs", true);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = function(e) {
+            if (this.status == 200) {
+                var blob = this.response;
+                var str = btoa(String.fromCharCode.apply(null, new Uint8Array(blob)));
+                
+                var prior = new Image();
 
-           prior.onload = function () {
-                var data = that.getImageData(prior);
-                console.log(data);
-                that.worker.postMessage(["init",  that.imgData, data]);
-           };
+                prior.onload = function () {
+                    var data = that.getImageData(prior);
+                    console.log(data);
+                    that.worker.postMessage(["init",  that.imgData, data]);
+                };
 
-           prior.src = "data:image/jpg;base64,"+str;
+            prior.src = "data:image/jpg;base64,"+str;
 
-         }
-       };
-       
-       xhr.setRequestHeader ("Authorization", "Api-Key " + that.apiKey);
-       xhr.send(formData);
+            } else {
+                console.log("prior, xhr api/jobs status : ",this.status);
+                console.log("xhr progressEvent : ",e);
+                that.terminateGraphcut();
+            }
+        };
+
+        xhr.setRequestHeader ("Authorization", "Api-Key " + that.apiKey);
+        xhr.send(formData);
    }
 
-   if (this.hash) {
-       next(this.hash);
-   } else {
-       this.getBlob(this.img, next);
-   }
-
-
-
-    this.lineWidth = 7;
+    if (this.hash) {
+        next(this.hash);
+    } else {
+        this.getBlob(this.img, next);
+    }
 
     
-    this.canvasImg.style.width  = this.canvasImg.naturalWidth*this.zoom*this.ratio + "px";
-    this.canvasImg.style.height = this.canvasImg.naturalHeight*this.zoom*this.ratio + "px";
+    this.canvasImg.style.width  = this.img.naturalWidth*this.zoom*this.ratio + "px";
+    this.canvasImg.style.height = this.img.naturalHeight*this.zoom*this.ratio + "px";
 
-    this.canvasImg.style.width  = this.canvasImg.naturalWidth*this.zoom*this.ratio + "px";
-    this.canvasImg.style.height = this.canvasImg.naturalHeight*this.zoom*this.ratio + "px";
+    this.canvasImg.style.width  = this.img.naturalWidth*this.zoom*this.ratio + "px";
+    this.canvasImg.style.height = this.img.naturalHeight*this.zoom*this.ratio + "px";
 
-    this.previewImg.style.width  = this.canvasImg.naturalWidth*this.zoom*this.ratio + "px";
-    this.previewImg.style.height = this.canvasImg.naturalHeight*this.zoom*this.ratio + "px";
+    this.previewImg.style.width  = this.img.naturalWidth*this.zoom*this.ratio + "px";
+    this.previewImg.style.height = this.img.naturalHeight*this.zoom*this.ratio + "px";
 
-    this.canvasDiv.style.width  = 650 + 10 + "px";
-    this.canvasDiv.style.height = this.canvasImg.naturalHeight*this.ratio + "px";
+    this.canvasDiv.style.width  = 650 + "px";
+    this.canvasDiv.style.height = this.img.naturalHeight*this.ratio + "px";
     
     $('#whiteshop-cursor').css("width", this.lineWidth*this.zoom*this.ratio);
     $('#whiteshop-cursor').css("height",this.lineWidth*this.zoom*this.ratio);
@@ -229,6 +236,12 @@ Graphcut.prototype.init = function () {
         lastX =  e.pageX - $(this).offset().left;
         lastY = e.pageY - $(this).offset().top;
         draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, false);
+        if(!that.hasDrawn) {
+            that.hasDrawn = true;
+            $("#whiteshop-dropdown button").attr("disabled",false);
+            $("#whiteshop-previewchanges").attr("disabled","disabled");
+            $("#whiteshop-button-valid").attr("disabled","disabled");
+        }
     });
     
     $(this.canvas).mousemove(function (e) {
@@ -265,18 +278,21 @@ Graphcut.prototype.init = function () {
         $('#cursor').css("border-style","solid");
         that.eraser = false;
         switch($(this).attr("id")){
-            case "whiteshop-background" : 
+            case "whiteshop-background" :
+            $('#whiteshop-cursor').css("border-style","solid"); 
             that.color = "red";
                 break;
-            case "whiteshop-foreground" : 
+            case "whiteshop-foreground" :
+            $('#whiteshop-cursor').css("border-style","solid");
             that.color = "green";
                 break;
             case "whiteshop-eraser" :
+            $('#whiteshop-cursor').css("border-style","dashed");
             that.color = "white";
                 break;
         }
 
-        $('whiteshop-#cursor').css("border-color",that.color);
+        $('#whiteshop-cursor').css("border-color",that.color);
         that.updateCursorSize();
     });
 
@@ -318,12 +334,17 @@ Graphcut.prototype.init = function () {
         
         var sx = that.canvas.width/parseInt(that.canvas.style.width);
         var sy = that.canvas.height/parseInt(that.canvas.style.height);
-        $('#whiteshop-cursor').css("border-style","dashed");
         $('#whiteshop-cursor').css("border-color","white");
         that.updateCursorSize();
     });
 
     $("#whiteshop-run").click(function(){
+        //Disable buttons while processing
+        $("#whiteshop-dropdown button").attr("disabled","disabled");
+        $("#whiteshop-previewchanges").attr("disabled","disabled");
+        $("#whiteshop-button-valid").attr("disabled","disabled");
+        $("#whiteshop-modal").css("cursor","progress");
+        
         if (workerBusy) {
             console.log("Worker already busy");
             return;
@@ -346,7 +367,10 @@ Graphcut.prototype.init = function () {
         $("#whiteshop-edit").hide();
         $("#whiteshop-modal .close").hide();
         $("#whiteshop-preview-img").hide();
-        
+
+        if(workerBusy) {$("#whiteshop-modal").css("cursor","progress");}
+        console.log(workerBusy);
+
         $("#whiteshop-background").click();
         //$("#whiteshop-zoom1").click();
     });
@@ -361,12 +385,14 @@ Graphcut.prototype.init = function () {
         $("#whiteshop-canvas").hide();
         $("#whiteshop-edit").show();
         $("#whiteshop-preview-img").show();
+
+        //Need real path
+        $("#whiteshop-preview-img").attr("src",that.loadingImgPath);
         
         $("#whiteshop-zoom1").click();
         that.worker.postMessage(["export"]);
     });
 
-    
     $("#whiteshop-button-cancel").click(function(){
         $("[data-dismiss=modal]").trigger({ type: "click" });
         that.callback();
@@ -456,13 +482,14 @@ Graphcut.prototype.sendMat = function(maskBlob, cb) {
         formData.append("synchrone","true");
         formData.append("task", "matting");
         formData.append("image", img);
+        formData.append("preset", that.preset);
         formData.append("mask", maskBlob);
         var xhr = new XMLHttpRequest();
         xhr.open('POST', "http://137.74.115.158/api/jobs", true);
         xhr.responseType = 'arraybuffer';
 
         xhr.onload = function(e) {
-          if (this.status == 200) {
+            if (this.status == 200) {
             var blob = this.response;
             var str = btoa(String.fromCharCode.apply(null, new Uint8Array(blob)));
             console.log(xhr.getAllResponseHeaders());
@@ -484,7 +511,11 @@ Graphcut.prototype.sendMat = function(maskBlob, cb) {
             });
 
             that.jobId = headerMap["x-api-job-id"];
-          }
+            } else {
+                console.log("sendMat, xhr api/jobs status : ",this.status);
+                console.log("xhr progressEvent : ",e);
+                that.terminateGraphcut();
+            }
         };
 
         xhr.setRequestHeader ("Authorization", "Api-Key " + that.apiKey);
@@ -499,10 +530,6 @@ Graphcut.prototype.sendMat = function(maskBlob, cb) {
 }
 
 
-
-
-
-
 Graphcut.prototype.getBlob = function(img, cb) {
     var request = new XMLHttpRequest();
     request.responseType = "blob";
@@ -514,26 +541,12 @@ Graphcut.prototype.getBlob = function(img, cb) {
 }
 
 
-
-/*
-$.ajax({
-    url: "http://137.74.115.158/api/presets",
-    type: "GET",
-    crossDomain: true,
-    data: {},
-    beforeSend: function (xhr) {
-        xhr.setRequestHeader ("Authorization", "Api-Key " + "06314cf8-1993-42d7-8a88-88df63be6eae");
-    },
-    success: function (response) {
-      console.log("Réponse API : ", response);
-    },
-    complete: function(e)
+Graphcut.prototype.terminateGraphcut = function (){
+    $("[data-dismiss=modal]").trigger({ type: "click" });
+    if(this.worker != undefined)
     {
-        console.log(e);
+        this.worker.terminate();
     }
-  });
-
-  */
-
+}
 
   
