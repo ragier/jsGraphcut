@@ -1,19 +1,4 @@
 "use strict";
-/*
-var mousePressed = false;
-var lastX, lastY;
-var ctx;
-window.onload = InitThis;
-
-
-
-var worker;
-var workerBusy = false;
-//var graphcut;
-
-var zoom = 1; //zoom factor
-var radius = 15;
-*/
 
 function Graphcut(img, imgPreview, apiKey, callback, options) {
     this.img = img;
@@ -88,16 +73,16 @@ Graphcut.prototype.init = function () {
     var lastX, lastY;
 
         
-    var aspectRatio = this.canvasImg.naturalHeight / this.canvasImg.naturalWidth;
-    this.pLength = Math.min(this.pLength, this.canvasImg.naturalHeight, this.canvasImg.naturalWidth)
+    var aspectRatio = this.img.naturalHeight / this.img.naturalWidth;
+    this.pLength = Math.min(this.pLength, this.img.naturalHeight, this.img.naturalWidth)
     this.pSize = [this.pLength, this.pLength * aspectRatio];
-    this.ratio = 650/this.canvasImg.naturalWidth;
+    this.ratio = 650/this.img.naturalWidth;
 
     this.canvas.width  = this.pSize[0];
     this.canvas.height = this.pSize[1];
-
-    this.canvas.style.width  = this.canvasImg.naturalWidth *  this.zoom*this.ratio + "px";
-    this.canvas.style.height = this.canvasImg.naturalHeight * this.zoom*this.ratio + "px";
+    console.log(this.pSize);
+    this.canvas.style.width  = this.img.naturalWidth *  this.zoom*this.ratio + "px";
+    this.canvas.style.height = this.img.naturalHeight * this.zoom*this.ratio + "px";
 
     this.imgData = this.getImageData(this.img);
 
@@ -187,17 +172,17 @@ Graphcut.prototype.init = function () {
     }
 
     
-    this.canvasImg.style.width  = this.canvasImg.naturalWidth*this.zoom*this.ratio + "px";
-    this.canvasImg.style.height = this.canvasImg.naturalHeight*this.zoom*this.ratio + "px";
+    this.canvasImg.style.width  = this.img.naturalWidth*this.zoom*this.ratio + "px";
+    this.canvasImg.style.height = this.img.naturalHeight*this.zoom*this.ratio + "px";
 
-    this.canvasImg.style.width  = this.canvasImg.naturalWidth*this.zoom*this.ratio + "px";
-    this.canvasImg.style.height = this.canvasImg.naturalHeight*this.zoom*this.ratio + "px";
+    this.canvasImg.style.width  = this.img.naturalWidth*this.zoom*this.ratio + "px";
+    this.canvasImg.style.height = this.img.naturalHeight*this.zoom*this.ratio + "px";
 
-    this.previewImg.style.width  = this.canvasImg.naturalWidth*this.zoom*this.ratio + "px";
-    this.previewImg.style.height = this.canvasImg.naturalHeight*this.zoom*this.ratio + "px";
+    this.previewImg.style.width  = this.img.naturalWidth*this.zoom*this.ratio + "px";
+    this.previewImg.style.height = this.img.naturalHeight*this.zoom*this.ratio + "px";
 
     this.canvasDiv.style.width  = 650 + "px";
-    this.canvasDiv.style.height = this.canvasImg.naturalHeight*this.ratio + "px";
+    this.canvasDiv.style.height = this.img.naturalHeight*this.ratio + "px";
     
     $('#whiteshop-cursor').css("width", this.lineWidth*this.zoom*this.ratio);
     $('#whiteshop-cursor').css("height",this.lineWidth*this.zoom*this.ratio);
@@ -540,9 +525,6 @@ Graphcut.prototype.sendMat = function(maskBlob, cb) {
         this.getBlob(this.img, next);
     }
 }
-
-
-
 
 
 Graphcut.prototype.getBlob = function(img, cb) {
