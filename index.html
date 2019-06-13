@@ -4,7 +4,8 @@
 	<title>GraphCut</title>
 	<link href="style.css" rel="stylesheet" type="text/css" media="all">
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" type="text/javascript" crossorigin="anonymous" ></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js" type="text/javascript"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 </head>
 
@@ -12,16 +13,91 @@
 <body id="body">
 	<!--<script src="gcgraph.js"></script>-->
 	<!--<script src="graphcut.js"></script>-->
-	<img id ="testImg" src="11.jpg" />
 	<script src="graphcut.js"></script>
 
+	<div class="container" style="background-color:white;">
+		<div class="row align-items-center my-2 text-center rounded border" id="drag-div" style="height:128px;" >
+			<div class="col-sm-3"></div>
+			
+
+				<div class="col-sm-6 align-items-center align-self-center text-center" >
+					<form>
+						<div class="custom-file" id="file-zone">
+						<input 
+							type="file" 
+							class="custom-file-input" 
+							id="addFile" >
+						</input>
+						<label class="custom-file-label" for="addFile">Choose or drag'n'drop a file</label>
+						</div>
+						<em style="display:none;" id="drop-helper"> Drop your files here</em>
+					</form>
+				</div>
+			
+
+			<div class="col-sm-3"></div>
+		</div>
+	</div>
+
 	<script>
+
+		function readURL(input, cb) {
+			if (input.files && input.files[0]) {
+				var reader = new FileReader();
+				
+				reader.onload = function(e) {
+					var img = new Image();
+					img.src = e.target.result;
+
+					cb(img);
+				}
+				
+				reader.readAsDataURL(input.files[0]);
+			}
+		}
+
+
 		$(function() {
+            $('.custom-file-input').on('change',function(){
+                //get the file name
+				var filename = $(this).val().split("\\").pop();
+                //replace the "Choose a file" label
+				$(this).siblings(".custom-file-label").addClass("selected").html(filename);
+				readURL(this, function (img) {
+					new Graphcut(img, "06314cf8-1993-42d7-8a88-88df63be6eae", function (e) {
+						console.log(e);
+					}, {
+						//...
+					});
+				});
+                console.log(filename);
+			})
+			
+			$(window).on('dragenter', function(){
+				$(this).preventDefault();
+			});
+			$("#drag-div").bind("dragover", function () {
+				$("#drag-div").addClass("dragging");
+				$("#file-zone").hide();
+				$("#drop-helper").show();
+			});
+
+			$("#drag-div").bind("dragleave", function () {
+				$("#drag-div").removeClass("dragging");
+				$("#file-zone").show();
+				$("#drop-helper").hide();
+			});
+
+			$("#drag-div").bind("drop", function (e) {
+				console.log(e);
+				e.preventDefault();
+			});
+			/*
 			new Graphcut($("#testImg")[0], "06314cf8-1993-42d7-8a88-88df63be6eae", function (e) {
 				console.log(e);
 			}, {
 				//...
-			});
+			});*/
 		});
 	</script>
 </body>
