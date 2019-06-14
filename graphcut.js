@@ -1,6 +1,7 @@
 "use strict";
 
 function Graphcut(img, imgPreview, apiKey, callback, options) {
+    options = options || {};
     this.img = img;
     this.imgPreview = imgPreview;
     this.apiKey = apiKey;
@@ -15,6 +16,8 @@ function Graphcut(img, imgPreview, apiKey, callback, options) {
     this.lineWidth = 11;
     this.hasDrawn = false;
 
+    this.ready = false;
+
     this.mask;
 
     this.pLength = options.pLength || 400;
@@ -26,6 +29,8 @@ function Graphcut(img, imgPreview, apiKey, callback, options) {
     
     if(!img.complete || !imgPreview.complete || img.naturalHeight === 0 || imgPreview.naturalHeight === 0) {
         //Erreur de chargement des images
+        console.log(img, imgPreview);
+        debugger;
         this.terminateGraphcut();        
     }
     
@@ -101,7 +106,11 @@ Graphcut.prototype.init = function () {
             break;
                 case "exported" : 
                 var tmpCanvas = document.createElement("canvas");
+                console.log(e.data[1]);
+                tmpCanvas.width = e.data[1].width;
+                tmpCanvas.height = e.data[1].height;
                 tmpCanvas.getContext('2d').putImageData( e.data[1], 0, 0 );
+                console.log(tmpCanvas);
                 tmpCanvas.toBlob(function (blob) {
                     console.log(blob);
                     that.sendMat.bind(that)(blob);
@@ -110,10 +119,12 @@ Graphcut.prototype.init = function () {
                 console.log("[worker] exported")
             break;
             case "segmented" : 
-                console.log("[worker] segmented")
+                console.log("[worker] segmented");
                 var mask = e.data[1];
                 that.ctx.putImageData( mask, 0, 0 );
                 workerBusy = false;
+                that.ready = true;
+                console.log("gcgraph ready!");
                 $("#whiteshop-previewchanges").attr("disabled",false);
                 $("#whiteshop-button-valid").attr("disabled",false);
                 $("#whiteshop-dropdown button").attr("disabled",false);
@@ -152,7 +163,25 @@ Graphcut.prototype.init = function () {
                     that.worker.postMessage(["init",  that.imgData, data]);
                 };
 
-            prior.src = "data:image/jpg;base64,"+str;
+                prior.src = "data:image/jpg;base64,"+str;
+                var headers = xhr.getAllResponseHeaders();
+                console.log(headers);
+
+                // Convert the header string into an array
+                // of individual headers
+                var arr = headers.trim().split(/[\r\n]+/);
+            
+                // Create a map of header names to values
+                var headerMap = {};
+                arr.forEach(function (line) {
+                    var parts = line.split(': ');
+                    var header = parts.shift();
+                    var value = parts.join(': ');
+                    headerMap[header] = value;
+                });
+                console.log("update hash! ", headerMap["x-api-img-id"]);
+                that.hash = that.hash  || headerMap["x-api-img-id"];
+
 
             } else {
                 console.log("prior, xhr api/jobs status : ",this.status);
@@ -369,7 +398,6 @@ Graphcut.prototype.init = function () {
         $("#whiteshop-preview-img").hide();
 
         if(workerBusy) {$("#whiteshop-modal").css("cursor","progress");}
-        console.log(workerBusy);
 
         $("#whiteshop-background").click();
         //$("#whiteshop-zoom1").click();
@@ -475,13 +503,23 @@ Graphcut.prototype.clearArea = function() {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 }
 
+function _arrayBufferToBase64( buffer ) {
+    var binary = '';
+    var bytes = new Uint8Array( buffer );
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode( bytes[ i ] );
+    }
+    return window.btoa( binary );
+}
+
 Graphcut.prototype.sendMat = function(maskBlob, cb) {
     var that = this;
     function next(img) {
         var formData = new FormData();
         formData.append("synchrone","true");
         formData.append("task", "matting");
-        formData.append("image", img);
+        formData.append("image", that.hash);
         formData.append("preset", that.preset);
         formData.append("mask", maskBlob);
         var xhr = new XMLHttpRequest();
@@ -491,7 +529,7 @@ Graphcut.prototype.sendMat = function(maskBlob, cb) {
         xhr.onload = function(e) {
             if (this.status == 200) {
             var blob = this.response;
-            var str = btoa(String.fromCharCode.apply(null, new Uint8Array(blob)));
+            var str = _arrayBufferToBase64(blob);
             console.log(xhr.getAllResponseHeaders());
             document.getElementById("whiteshop-preview-img").src = "data:image/jpg;base64,"+str;
             // Get the raw header string
@@ -521,7 +559,7 @@ Graphcut.prototype.sendMat = function(maskBlob, cb) {
         xhr.setRequestHeader ("Authorization", "Api-Key " + that.apiKey);
         xhr.send(formData);
     }
- 
+    console.log("this.hash", this.hash);
     if (this.hash) {
         next(this.hash);
     } else {
@@ -542,6 +580,7 @@ Graphcut.prototype.getBlob = function(img, cb) {
 
 
 Graphcut.prototype.terminateGraphcut = function (){
+    console.warn("terminateGraphcut");
     $("[data-dismiss=modal]").trigger({ type: "click" });
     if(this.worker != undefined)
     {

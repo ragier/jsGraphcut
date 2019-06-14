@@ -7,7 +7,6 @@ class Graphcut {
         this.img = img.data;
         this.gamma = 50;
         this.prior = prior.data; //obj = 255, background = 0
-  
         this.height = img.height;
         this.width = img.width;
       }
@@ -82,57 +81,61 @@ class Graphcut {
     {
         var pixels = this.img;
         console.log(pixels);
+        console.log(this);
         var beta = 0;
-        for( var y = 0; y < this.width; y++ )
+        for( var y = 0; y < this.height; y++ )
         {
-            for( var x = 0; x < this.height; x++ )
+            for( var x = 0; x < this.width; x++ )
             {
                 var pr = pixels[(y*this.width + x)*4 + 1];
                 var pg = pixels[(y*this.width + x)*4 + 2];
                 var pb = pixels[(y*this.width + x)*4 + 0];
-
+                var sr, sg, sb, idx;
                 
                 if( x-1>=0 ) // left
                 {
-                    var idx = (y*this.width + x-1)*4;
-                    var sr = pixels[idx + 1] - pr;
-                    var sg = pixels[idx + 2] - pg;
-                    var sb = pixels[idx + 0] - pb;
+                    idx = (y*this.width + x-1)*4;
+                    sr = pixels[idx + 1] - pr;
+                    sg = pixels[idx + 2] - pg;
+                    sb = pixels[idx + 0] - pb;
                     
                     beta += (sr*sr + sg*sg + sb*sb);
                 }
 
                 if( x-1>=0 && y-1>=0 ) // upleft
                 {
-                    var idx = ((y-1)*this.width + x-1)*4;
-                    var sr = pixels[idx + 1] - pr;
-                    var sg = pixels[idx + 2] - pg;
-                    var sb = pixels[idx + 0] - pb;
+                    idx = ((y-1)*this.width + x-1)*4;
+                    sr = pixels[idx + 1] - pr;
+                    sg = pixels[idx + 2] - pg;
+                    sb = pixels[idx + 0] - pb;
                     
                     beta += (sr*sr + sg*sg + sb*sb);
                 }
                 
                 if( y-1>=0 ) // up
                 {
-                    var idx = ((y-1)*this.width + x)*4;
-                    var sr = pixels[idx + 1] - pr;
-                    var sg = pixels[idx + 2] - pg;
-                    var sb = pixels[idx + 0] - pb;
+                    idx = ((y-1)*this.width + x)*4;
+                    sr = pixels[idx + 1] - pr;
+                    sg = pixels[idx + 2] - pg;
+                    sb = pixels[idx + 0] - pb;
                     
                     beta += (sr*sr + sg*sg + sb*sb);
                 }
                 
                 if( x+1<this.width && y-1>=0 ) // upright
                 {
-                    var idx = ((y-1)*this.width + x+1 )*4;
-                    var sr = pixels[idx + 1] - pr;
-                    var sg = pixels[idx + 2] - pg;
-                    var sb = pixels[idx + 0] - pb;
+                    idx = ((y-1)*this.width + x+1 )*4;
+                    sr = pixels[idx + 1] - pr;
+                    sg = pixels[idx + 2] - pg;
+                    sb = pixels[idx + 0] - pb;
                     
                     beta += (sr*sr + sg*sg + sb*sb);
                 }
+
+                if (isNaN(beta)) debugger;
             }
         }
+        console.log("unormalized beta : ", beta);
 
         beta = 1.0 / (2 * beta/(4*this.width*this.height - 3*this.width - 3*this.height + 2) );
 

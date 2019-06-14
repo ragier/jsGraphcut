@@ -47,13 +47,80 @@
 				reader.onload = function(e) {
 					var img = new Image();
 					img.src = e.target.result;
-
-					cb(img);
+					img.name = input.files[0].name;
+					if (img.complete)
+						cb(img);
+					else {
+						img.onload = function () {
+							cb(img);
+						};
+					}
 				}
 				
 				reader.readAsDataURL(input.files[0]);
+				console.log(input.files[0]);
 			}
 		}
+
+		function _arrayBufferToBase64( buffer ) {
+			var binary = '';
+			var bytes = new Uint8Array( buffer );
+			var len = bytes.byteLength;
+			for (var i = 0; i < len; i++) {
+				binary += String.fromCharCode( bytes[ i ] );
+			}
+			return window.btoa( binary );
+		}
+
+		function processImage(blob, image, cb) {
+			var formData = new FormData();
+			formData.append("synchrone","true");
+			formData.append("image", blob, image.name);
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', "http://137.74.115.158/api/jobs", true);
+			xhr.responseType = 'arraybuffer';
+
+			xhr.onload = function(e) {
+				if (this.status == 200) {
+					var blob = this.response;
+					var str = _arrayBufferToBase64(blob);
+					console.log(xhr.getAllResponseHeaders());
+					// Get the raw header string
+					var headers = xhr.getAllResponseHeaders();
+
+					// Convert the header string into an array
+					// of individual headers
+					var arr = headers.trim().split(/[\r\n]+/);
+				
+					// Create a map of header names to values
+					var headerMap = {};
+					arr.forEach(function (line) {
+						var parts = line.split(': ');
+						var header = parts.shift();
+						var value = parts.join(': ');
+						headerMap[header] = value;
+					});
+
+					var img = new Image();
+
+					img.onload = function () {
+						cb(img, headerMap["x-api-img-id"]);
+					};
+
+					img.src = "data:image/jpg;base64,"+str;
+
+					
+
+				} else {
+					console.log("sendMat, xhr api/jobs status : ",this.status);
+					console.log("xhr progressEvent : ",e);
+				}
+			};
+
+			xhr.setRequestHeader ("Authorization", "Api-Key " + "06314cf8-1993-42d7-8a88-88df63be6eae");
+			xhr.send(formData);
+		}
+
 
 
 		$(function() {
@@ -63,11 +130,22 @@
                 //replace the "Choose a file" label
 				$(this).siblings(".custom-file-label").addClass("selected").html(filename);
 				readURL(this, function (img) {
-					new Graphcut(img, "06314cf8-1993-42d7-8a88-88df63be6eae", function (e) {
-						console.log(e);
-					}, {
-						//...
+					var tmpCanvas = document.createElement("canvas");
+					tmpCanvas.width = img.naturalWidth;
+					tmpCanvas.height = img.naturalHeight;
+					tmpCanvas.getContext('2d').drawImage( img, 0, 0 );
+					console.log(tmpCanvas);
+					tmpCanvas.toBlob(function (blob) {
+						processImage(blob, img, function (imgProcess, hash) {
+							new Graphcut(img, imgProcess, "06314cf8-1993-42d7-8a88-88df63be6eae", function (e) {
+							console.log(e);
+						}, {
+							hash:hash
+						});
+						})
 					});
+
+
 				});
                 console.log(filename);
 			})
