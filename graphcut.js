@@ -14,9 +14,13 @@ function Graphcut(img, imgPreview, apiKey, callback, options) {
     this.erase = false;
     this.radius = 11;
     this.lineWidth = 11;
-    this.hasDrawn = false;
+    //this.hasDrawn = false;
 
     this.ready = false;
+
+    this.timeout = undefined;
+
+    this.state = "modal";
 
     this.mask;
 
@@ -49,9 +53,14 @@ function Graphcut(img, imgPreview, apiKey, callback, options) {
         if (this.status == 200) {
         $(document.body).append(xhr.response);
         $("#whiteshop-modal").modal();
+        $("#whiteshop-loading-image").attr("src",that.loadingImgPath);
         $('#whiteshop-modal').on('hidden.bs.modal', function (e) {
             $("#whiteshop-modal").remove();
+            if (typeof that.callback == "function") {
+                that.callback(that.valid?that.jobId:undefined);
+            }
         })
+        
         that.init();
         } else {
             console.log("Failed to open "+that.modalTpl+" Status : "+this.status);
@@ -85,24 +94,25 @@ Graphcut.prototype.init = function () {
 
     this.canvas.width  = this.pSize[0];
     this.canvas.height = this.pSize[1];
-    console.log(this.pSize);
     this.canvas.style.width  = this.img.naturalWidth *  this.zoom*this.ratio + "px";
     this.canvas.style.height = this.img.naturalHeight * this.zoom*this.ratio + "px";
 
     this.imgData = this.getImageData(this.img);
 
+    this.workerBusy = true;
 
-    var workerBusy = true;
+    this.hasDrawn = false;
+
+
     this.worker.onmessage = function(e) {
         var action = e.data[0];
 
         //Disable run buttons until new modifications
-        that.hasDrawn = false;
 
         switch(action){
             case "initialized" : 
                 console.log("[worker] initialized")
-                workerBusy = false;
+                that.workerBusy = false;
             break;
                 case "exported" : 
                 var tmpCanvas = document.createElement("canvas");
@@ -115,21 +125,26 @@ Graphcut.prototype.init = function () {
                     console.log(blob);
                     that.sendMat.bind(that)(blob);
                 });
-
-                console.log("[worker] exported")
+                
             break;
             case "segmented" : 
+
                 console.log("[worker] segmented");
                 var mask = e.data[1];
                 that.ctx.putImageData( mask, 0, 0 );
-                workerBusy = false;
+                that.workerBusy = false;
                 that.ready = true;
                 console.log("gcgraph ready!");
                 $("#whiteshop-previewchanges").attr("disabled",false);
-                $("#whiteshop-button-valid").attr("disabled",false);
+
+                if (that.hasDrawn) $("#whiteshop-button-valid").attr("disabled",false);
+                
                 $("#whiteshop-dropdown button").attr("disabled",false);
                 $("#whiteshop-modal").css("cursor","");
-                //worker.postMessage(["export"]);
+                
+
+                if (that.state == "waitEdit") that.showEdit();
+
             break;
         }
     }
@@ -217,12 +232,19 @@ Graphcut.prototype.init = function () {
     $('#whiteshop-cursor').css("height",this.lineWidth*this.zoom*this.ratio);
     $('#whiteshop-cursor').css("border-radius",this.lineWidth*this.zoom*this.ratio);
     
+    $("#whiteshop-button-valid").attr("disabled","disabled");
 
 
     function draw(x, y, isAlreadyDown) {
         var sx = that.canvas.width/parseInt(that.canvas.style.width);
         var sy = that.canvas.height/parseInt(that.canvas.style.height);
-        if (isAlreadyDown && !that.eraser) {
+
+        if (!isAlreadyDown) {
+            lastX = x-.01; lastY = y-.01;
+        }
+
+
+        if (!that.eraser) {
             that.ctx.beginPath();
             that.ctx.strokeStyle = that.color;
             that.ctx.lineWidth = that.lineWidth;
@@ -249,31 +271,38 @@ Graphcut.prototype.init = function () {
                     that.ctx.stroke();
                 }
             }
+
             that.ctx.beginPath();
             that.ctx.lineWidth = that.lineWidth;
             that.ctx.arc(x*sx,y*sy,that.radius,0,Math.PI*2);
             that.ctx.fill();
             that.ctx.stroke();
         }
+
         lastX = x; lastY = y;
     }
 
 
     var mousePressed = false;
     $(this.canvas).mousedown(function (e) {
+        window.clearTimeout(that.timeout);
+        if (that.workerBusy) return;
+
+
         mousePressed = true;
         lastX =  e.pageX - $(this).offset().left;
         lastY = e.pageY - $(this).offset().top;
         draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, false);
         if(!that.hasDrawn) {
             that.hasDrawn = true;
-            $("#whiteshop-dropdown button").attr("disabled",false);
-            $("#whiteshop-previewchanges").attr("disabled","disabled");
-            $("#whiteshop-button-valid").attr("disabled","disabled");
         }
     });
     
     $(this.canvas).mousemove(function (e) {
+        if (!that.workerBusy) {
+            $('#whiteshop-cursor').show();
+            $("#whiteshop-canvas").css("cursor", "none");
+        }
         var sx = that.canvas.width/parseInt(that.canvas.style.width);
         if (mousePressed) {
             draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, true);
@@ -291,6 +320,12 @@ Graphcut.prototype.init = function () {
         mousePressed = false;
         lastX = null;
         lastY = null;
+
+        if ($("#whiteshop-auto").prop("checked") == true) {
+            that.timeout = window.setTimeout(function () {
+                $("#whiteshop-run").click();
+            }, 1000);
+        }
     });
     
     $(this.canvas).mouseleave(function (e) {
@@ -299,7 +334,10 @@ Graphcut.prototype.init = function () {
     });
 
     $(this.canvas).mouseenter(function (e) {
-        $('#whiteshop-cursor').show();
+        if (!that.workerBusy) {
+            $('#whiteshop-cursor').show();
+            $("#whiteshop-canvas").css("cursor", "none");
+        }
     });
 
     $(".whiteshop-color-button").click(function(){
@@ -334,7 +372,7 @@ Graphcut.prototype.init = function () {
             that.updateZoom.bind(that)(2);
                 break;
             case "whiteshop-zoom3" :
-            that.updateZoom.bind(that)(3);
+            that.updateZoom.bind(that)(4);
                 break;
         }
     });
@@ -342,16 +380,16 @@ Graphcut.prototype.init = function () {
     $("#whiteshop-size-select label").click(function(){
         switch($(this).attr("id")){
             case "whiteshop-size1" : 
-            that.lineWidth = 7;
-            that.radius = 7;
+            that.lineWidth = 5;
+            that.radius = 5;
                 break;
             case "whiteshop-size2" : 
-            that.lineWidth = 11;
-            that.radius = 11;
-                break;
-            case "whiteshop-size3" :
             that.lineWidth = 15;
             that.radius = 15;
+                break;
+            case "whiteshop-size3" :
+            that.lineWidth = 45;
+            that.radius = 45;
                 break;
         }
         that.updateCursorSize();
@@ -367,63 +405,12 @@ Graphcut.prototype.init = function () {
         that.updateCursorSize();
     });
 
-    $("#whiteshop-run").click(function(){
-        //Disable buttons while processing
-        $("#whiteshop-dropdown button").attr("disabled","disabled");
-        $("#whiteshop-previewchanges").attr("disabled","disabled");
-        $("#whiteshop-button-valid").attr("disabled","disabled");
-        $("#whiteshop-modal").css("cursor","progress");
-        
-        if (workerBusy) {
-            console.log("Worker already busy");
-            return;
-        }
-        workerBusy = true;
-        var mask = that.ctx.getImageData(0, 0, that.pSize[0], that.pSize[1]);
-        that.worker.postMessage(["segment", mask]);
-    });
-
-    $("#whiteshop-edit").click(function(){
-        $("#whiteshop-canvasdiv").show();
-        $("#whiteshop-previewchanges").show();
-        $("#whiteshop-dropdown").show();
-        $("#whiteshop-buttons-bottom-left").show();
-        $("#whiteshop-size-select").show();
-        $("#whiteshop-buttons-top-right").show();
-        $("#whiteshop-canvas").show();
-        $("#whiteshop-buttons-cancelvalidate").show();
-        $("#whiteshop-exit-modal").hide();
-        $("#whiteshop-edit").hide();
-        $("#whiteshop-modal .close").hide();
-        $("#whiteshop-preview-img").hide();
-
-        if(workerBusy) {$("#whiteshop-modal").css("cursor","progress");}
-
-        $("#whiteshop-background").click();
-        //$("#whiteshop-zoom1").click();
-    });
-    
-    $("#whiteshop-previewchanges").click(function(){
-        $("#whiteshop-canvasdiv").hide();
-        $("#whiteshop-previewchanges").hide();
-        $("#whiteshop-dropdown").hide();
-        $("#whiteshop-buttons-bottom-left").hide();
-        $("#whiteshop-size-select").hide();
-        $("#whiteshop-buttons-top-right").hide();
-        $("#whiteshop-canvas").hide();
-        $("#whiteshop-edit").show();
-        $("#whiteshop-preview-img").show();
-
-        //Need real path
-        $("#whiteshop-preview-img").attr("src",that.loadingImgPath);
-        
-        $("#whiteshop-zoom1").click();
-        that.worker.postMessage(["export"]);
-    });
+    $("#whiteshop-run").click(this.segment.bind(this));
+    $("#whiteshop-edit").click(this.edit.bind(this));
+    $("#whiteshop-previewchanges").click(this.preview.bind(this));
 
     $("#whiteshop-button-cancel").click(function(){
         $("[data-dismiss=modal]").trigger({ type: "click" });
-        that.callback();
     });
 
     $("#whiteshop-button-valid").click(function(){
@@ -431,13 +418,96 @@ Graphcut.prototype.init = function () {
             $("#whiteshop-previewchanges").click();
         }
         else {
+            that.valid = true;
             $("[data-dismiss=modal]").trigger({ type: "click" });
             //$("#whiteshop-modal").modal('hide');
-            that.callback(that.jobId);
         }
 
 
     });
+}
+
+Graphcut.prototype.segment = function () {
+    //Disable buttons while processing
+    $("#whiteshop-dropdown button").attr("disabled","disabled");
+    $("#whiteshop-previewchanges").attr("disabled","disabled");
+    $("#whiteshop-button-valid").attr("disabled","disabled");
+    $("#whiteshop-modal").css("cursor","progress");
+    
+    $("#whiteshop-canvas").css("cursor", "progress");
+    $('#whiteshop-cursor').hide();
+    
+    if (this.workerBusy) {
+        console.log("Worker already busy");
+        return;
+    }
+    this.workerBusy = true;
+    var mask = this.ctx.getImageData(0, 0, this.pSize[0], this.pSize[1]);
+    this.worker.postMessage(["segment", mask]);
+}
+
+Graphcut.prototype.preview = function () {
+    this.state = "waitPreview";
+    $("#whiteshop-canvasdiv").hide();
+    $("#whiteshop-previewchanges").hide();
+    $("#whiteshop-dropdown").hide();
+    $("#whiteshop-buttons-bottom-left").hide();
+    $("#whiteshop-size-select").hide();
+    $("#whiteshop-buttons-top-right").hide();
+    $("#whiteshop-canvas").hide();
+    
+    $("#whiteshop-loading").show();
+    
+    this.worker.postMessage(["export"]);
+}
+
+Graphcut.prototype.showPreview = function() {
+    this.state = "preview";
+
+    $("#whiteshop-edit").show();
+    $("#whiteshop-preview-img").show();
+
+    $("#whiteshop-loading").hide();
+    
+    $("#whiteshop-zoom1").click();
+
+};
+
+Graphcut.prototype.edit = function () {
+
+    $("#whiteshop-loading").show();
+    $("#whiteshop-canvasdiv").hide();
+    $("#whiteshop-preview-img").hide();
+
+
+    if (this.ready) {
+        this.showEdit();
+    }
+
+    $("#whiteshop-modal").css("cursor","progress");
+
+    this.state = "waitEdit";
+
+}
+
+Graphcut.prototype.showEdit = function() {
+    $("#whiteshop-canvasdiv").show();
+    $("#whiteshop-previewchanges").show();
+    $("#whiteshop-dropdown").show();
+    $("#whiteshop-buttons-bottom-left").show();
+    $("#whiteshop-size-select").show();
+    $("#whiteshop-buttons-top-right").show();
+    $("#whiteshop-canvas").show();
+    $("#whiteshop-buttons-cancelvalidate").show();
+    $("#whiteshop-exit-modal").hide();
+    $("#whiteshop-edit").hide();
+    $("#whiteshop-modal .close").hide();
+    $("#whiteshop-preview-img").hide();
+    $("#whiteshop-background").click();
+    $("#whiteshop-loading").hide();
+
+    this.state = "edit";
+
 }
 
 
@@ -549,6 +619,10 @@ Graphcut.prototype.sendMat = function(maskBlob, cb) {
             });
 
             that.jobId = headerMap["x-api-job-id"];
+
+            if (that.state == "waitPreview") that.showPreview();
+
+
             } else {
                 console.log("sendMat, xhr api/jobs status : ",this.status);
                 console.log("xhr progressEvent : ",e);

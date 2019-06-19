@@ -31,6 +31,12 @@
 						</div>
 						<em style="display:none;" id="drop-helper"> Drop your files here</em>
 					</form>
+					<div id="progressBar" style="display: none;" >
+						<div class="progress">
+							<div class="progress-bar progress-bar-striped progress-bar-animated"style="width: 0%"></div>
+						</div>
+						<p>[[ProgressBar]]</p>
+					</div>
 				</div>
 			
 
@@ -117,7 +123,7 @@
 				}
 			};
 
-			xhr.setRequestHeader ("Authorization", "Api-Key " + "06314cf8-1993-42d7-8a88-88df63be6eae");
+			xhr.setRequestHeader ("Authorization", "Api-Key DEMO-API-KEY");
 			xhr.send(formData);
 		}
 
@@ -125,11 +131,17 @@
 
 		$(function() {
             $('.custom-file-input').on('change',function(){
+				$('#file-zone').hide();
+				$("#progressBar").show();
+				$("#progressBar .progress-bar").width("33%");
+				$("#progressBar p").text("Chargement de l'image...");
                 //get the file name
 				var filename = $(this).val().split("\\").pop();
                 //replace the "Choose a file" label
 				$(this).siblings(".custom-file-label").addClass("selected").html(filename);
 				readURL(this, function (img) {
+					$("#progressBar .progress-bar").width("66%");
+					$("#progressBar p").text("Traitement de l'image...");
 					var tmpCanvas = document.createElement("canvas");
 					tmpCanvas.width = img.naturalWidth;
 					tmpCanvas.height = img.naturalHeight;
@@ -137,11 +149,19 @@
 					console.log(tmpCanvas);
 					tmpCanvas.toBlob(function (blob) {
 						processImage(blob, img, function (imgProcess, hash) {
-							new Graphcut(img, imgProcess, "06314cf8-1993-42d7-8a88-88df63be6eae", function (e) {
+							$("#progressBar .progress-bar").width("100%");
+							$("#progressBar p").text("Terminé");
+
+							new Graphcut(img, imgProcess, "DEMO-API-KEY", function (e) {
 							console.log(e);
-						}, {
-							hash:hash
-						});
+							$('#file-zone').show();
+							$("#progressBar").hide();
+							$("#progressBar .progress-bar").width("0%");
+							$('.custom-file-input').val("");
+
+							}, {
+								hash:hash
+							});
 						})
 					});
 
