@@ -26,9 +26,9 @@ class Graphcut {
         this.uprightW = new Float32Array(this.width * this.height);
 
 
-        for( var y = 0; y < this.width; y++ )
+        for( var y = 0; y < this.height; y++ )
         {
-            for( var x = 0; x < this.height; x++ )
+            for( var x = 0; x < this.width; x++ )
             {
                 var pr = pixels[(y*this.width + x)*4 + 1];
                 var pg = pixels[(y*this.width + x)*4 + 2];
@@ -200,6 +200,8 @@ class Graphcut {
 
         var lambda = this.gamma*9; //50*9
 
+        var theta = 1; 
+
         //var imgData = this.ctx.getImageData(0, 0, this.width, this.height);
         //var mask = imgData.data;
         console.log("mask : ", this.mask);
@@ -215,8 +217,7 @@ class Graphcut {
                 //var proba = this.mask[idx*4] / 255.0;
 
                 // set t-weights from proba map
-                var fromSource = 100;
-                var toSink     = 100;
+                var fromSource,toSink;
 
                 //red for source = foreground
                 if (this.mask && this.mask.data[idx*4] >0 && this.mask.data[idx*4+3] == 255) {
@@ -228,8 +229,11 @@ class Graphcut {
                     toSink = lambda;
                 }
                 else {
-                    fromSource = -Math.log(this.prior[idx*4]/256) * 0.1;
-                    toSink = -Math.log(1-this.prior[idx*4]/256) * 0.1;
+                    var prior = this.prior[idx*4]/256;
+
+                    prior = 1 / (1 + Math.exp( -8 * (prior - 0.5) ) ) ;
+                    fromSource = (1-prior) * theta;
+                    toSink = prior * theta;
                 }
 
 

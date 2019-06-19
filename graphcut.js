@@ -138,7 +138,7 @@ Graphcut.prototype.init = function () {
                 $("#whiteshop-previewchanges").attr("disabled",false);
 
                 if (that.hasDrawn) $("#whiteshop-button-valid").attr("disabled",false);
-                
+
                 $("#whiteshop-dropdown button").attr("disabled",false);
                 $("#whiteshop-modal").css("cursor","");
                 
@@ -663,3 +663,5 @@ Graphcut.prototype.terminateGraphcut = function (){
 }
 
   
+
+if (module) module.export = Graphcut;
