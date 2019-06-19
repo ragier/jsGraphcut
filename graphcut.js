@@ -7,6 +7,7 @@ function Graphcut(img, imgPreview, apiKey, callback, options) {
     this.apiKey = apiKey;
     this.callback = callback;
 
+    console.log("gcOptions : ", options)
     this.hash = options.hash;
 
     this.zoom = 1;
@@ -29,6 +30,8 @@ function Graphcut(img, imgPreview, apiKey, callback, options) {
     this.loadingImgPath = options.loadingImgPath || "loading.gif";
     this.modalTpl = options.modalTpl || "graphcutModal.html";
     this.workerJS = options.workerJS || "worker.js";
+
+    this.apiPath = options.apiPath || "http://137.74.115.158/api";
     this.preset = options.preset || "default";
     
     if(!img.complete || !imgPreview.complete || img.naturalHeight === 0 || imgPreview.naturalHeight === 0) {
@@ -163,7 +166,7 @@ Graphcut.prototype.init = function () {
         formData.append("image", img);
         formData.append("preset", that.preset);
         var xhr = new XMLHttpRequest();
-        xhr.open('POST', "http://137.74.115.158/api/jobs", true);
+        xhr.open('POST', that.apiPath + "/jobs", true);
         xhr.responseType = 'arraybuffer';
         xhr.onload = function(e) {
             if (this.status == 200) {
@@ -593,7 +596,7 @@ Graphcut.prototype.sendMat = function(maskBlob, cb) {
         formData.append("preset", that.preset);
         formData.append("mask", maskBlob);
         var xhr = new XMLHttpRequest();
-        xhr.open('POST', "http://137.74.115.158/api/jobs", true);
+        xhr.open('POST', that.apiPath + "/jobs", true);
         xhr.responseType = 'arraybuffer';
 
         xhr.onload = function(e) {
@@ -664,4 +667,4 @@ Graphcut.prototype.terminateGraphcut = function (){
 
   
 
-if (module) module.export = Graphcut;
+if (module) module.exports = Graphcut;
