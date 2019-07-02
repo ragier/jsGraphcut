@@ -37,15 +37,15 @@ function Graphcut(img, imgPreview, apiKey, callback, options) {
     if(!img.complete || !imgPreview.complete || img.naturalHeight === 0 || imgPreview.naturalHeight === 0) {
         //Erreur de chargement des images
         console.log(img, imgPreview);
-        debugger;
-        this.terminateGraphcut();        
+        this.terminateGraphcut();     
+        throw new Error('Fail to initialized graphcut');
     }
     
     try {
         this.worker = new Worker(this.workerJS);
     } catch (exception){
-        console.log("Coud not create worker "+this.workerJS+" Exception : "+exception);
         this.terminateGraphcut();
+        throw new Error("Coud not create worker "+this.workerJS+" Exception : "+exception);
     }
 
     var xhr = new XMLHttpRequest();
@@ -66,8 +66,8 @@ function Graphcut(img, imgPreview, apiKey, callback, options) {
         
         that.init();
         } else {
-            console.log("Failed to open "+that.modalTpl+" Status : "+this.status);
             that.terminateGraphcut();
+            throw new Error("Failed to open "+that.modalTpl+" Status : "+this.status);
         }
     };
     
@@ -205,6 +205,8 @@ Graphcut.prototype.init = function () {
                 console.log("prior, xhr api/jobs status : ",this.status);
                 console.log("xhr progressEvent : ",e);
                 that.terminateGraphcut();
+                throw new Error("Failed to get Prior " + this.status);
+
             }
         };
 
@@ -627,9 +629,9 @@ Graphcut.prototype.sendMat = function(maskBlob, cb) {
 
 
             } else {
-                console.log("sendMat, xhr api/jobs status : ",this.status);
-                console.log("xhr progressEvent : ",e);
                 that.terminateGraphcut();
+                throw new Error("Failed to get Matting " + this.status);
+
             }
         };
 
