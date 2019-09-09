@@ -171,7 +171,8 @@ Graphcut.prototype.init = function () {
         xhr.onload = function(e) {
             if (this.status == 200) {
                 var blob = this.response;
-                var str = btoa(String.fromCharCode.apply(null, new Uint8Array(blob)));
+                //var str = btoa(String.fromCharCode.apply(null, new Uint8Array(blob)));
+                var str = _arrayBufferToBase64(blob);
                 
                 var prior = new Image();
 
