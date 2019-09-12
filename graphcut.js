@@ -140,7 +140,7 @@ Graphcut.prototype.init = function () {
                 console.log("gcgraph ready!");
                 $("#whiteshop-previewchanges").attr("disabled",false);
 
-                if (that.hasDrawn) $("#whiteshop-button-valid").attr("disabled",false);
+                /*if (that.hasDrawn)*/ $("#whiteshop-button-valid").attr("disabled",false);
 
                 $("#whiteshop-dropdown button").attr("disabled",false);
                 $("#whiteshop-modal").css("cursor","");
@@ -238,7 +238,8 @@ Graphcut.prototype.init = function () {
     $('#whiteshop-cursor').css("height",this.lineWidth*this.zoom*this.ratio);
     $('#whiteshop-cursor').css("border-radius",this.lineWidth*this.zoom*this.ratio);
     
-    $("#whiteshop-button-valid").attr("disabled","disabled");
+    if (!this.ready)
+        $("#whiteshop-button-valid").attr("disabled",this.ready?false:"disabled");
 
 
     function draw(x, y, isAlreadyDown) {
